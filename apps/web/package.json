@@ -10,6 +10,8 @@
     "test": "echo 'No tests configured for web yet'"
   },
   "dependencies": {
+    "@types/mongoose": "^5.11.96",
+    "mongoose": "^8.21.0",
     "next": "16.1.2",
     "react": "19.2.3",
     "react-dom": "19.2.3"
