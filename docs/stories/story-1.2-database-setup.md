@@ -1,7 +1,7 @@
 # Story 1.2: Database Setup & Connection
 
 **Epic:** [Epic 1: Foundation & Core Graph Infrastructure](../epics/epic-1-foundation.md)  
-**Status:** Ready for Review  
+**Status:** Done  
 **Agent Model Used:** Claude Sonnet 4.5
 
 ## Story
