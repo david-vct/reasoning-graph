@@ -1,0 +1,13 @@
+{
+  "name": "@reasoning-graph/graph-engine",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "echo 'No build configured for graph-engine yet'",
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'No linting configured for graph-engine yet'",
+    "test": "echo 'No tests configured for graph-engine yet'"
+  }
+}
