@@ -6,6 +6,10 @@ declare module 'next-auth' {
       id: string;
       email: string;
       name: string;
+      preferences?: {
+        theme?: 'light' | 'dark';
+        connectionMode?: string;
+      };
     };
   }
 
@@ -13,6 +17,10 @@ declare module 'next-auth' {
     id: string;
     email: string;
     name: string;
+    preferences?: {
+      theme?: 'light' | 'dark';
+      connectionMode?: string;
+    };
   }
 }
 
