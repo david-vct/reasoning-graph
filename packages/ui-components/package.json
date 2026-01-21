@@ -8,6 +8,6 @@
     "build": "echo 'No build configured for ui-components yet'",
     "type-check": "tsc --noEmit",
     "lint": "echo 'No linting configured for ui-components yet'",
-    "test": "echo 'No tests configured for ui-components yet'"
+    "test": "jest"
   }
 }

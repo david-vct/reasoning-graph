@@ -54,9 +54,90 @@ From the root directory:
 
 - **`npm run dev`** - Start the development server (Next.js app)
 - **`npm run build`** - Build all workspace packages for production
-- **`npm run test`** - Run tests across all packages
+- **`npm run test`** - Run all tests across workspaces
+- **`npm run test:watch`** - Run tests in watch mode for development
+- **`npm run test:coverage`** - Generate test coverage report
+- **`npm run test:e2e`** - Run end-to-end tests with Playwright
 - **`npm run lint`** - Run ESLint across all packages
 - **`npm run type-check`** - Run TypeScript type checking
+
+## Testing
+
+This project uses a comprehensive testing setup:
+
+### Unit & Component Tests (Jest)
+
+Run unit and component tests:
+
+```bash
+npm test                    # Run all tests
+npm run test:watch          # Watch mode for development
+npm run test:coverage       # Generate coverage report
+```
+
+Coverage reports are generated in the `coverage/` directory. Open `coverage/lcov-report/index.html` in a browser to view detailed coverage.
+
+**Test Structure:**
+
+- Unit tests: `packages/graph-engine/src/__tests__/`
+- Component tests: `apps/web/__tests__/components/`
+- API tests: `apps/web/__tests__/api/`
+
+### End-to-End Tests (Playwright)
+
+Run E2E tests:
+
+```bash
+npm run test:e2e            # Run Playwright tests
+```
+
+**Note:** E2E tests require the development server to be running or will start it automatically.
+
+E2E tests are located in `apps/web/__tests__/e2e/`.
+
+### Writing Tests
+
+**Example Unit Test:**
+
+```typescript
+// packages/graph-engine/src/__tests__/validation.test.ts
+import { validateDAG } from '../validation';
+
+describe('DAG Validation', () => {
+  it('should detect cycles', () => {
+    const result = validateDAG(graphWithCycle);
+    expect(result.isValid).toBe(false);
+  });
+});
+```
+
+**Example Component Test:**
+
+```typescript
+// apps/web/__tests__/components/MyComponent.test.tsx
+import { render, screen } from '../utils/test-utils';
+import MyComponent from '@/components/MyComponent';
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    render(<MyComponent />);
+    expect(screen.getByText('Hello')).toBeInTheDocument();
+  });
+});
+```
+
+**Example E2E Test:**
+
+```typescript
+// apps/web/__tests__/e2e/workflow.spec.ts
+import { test, expect } from '@playwright/test';
+
+test('user can complete workflow', async ({ page }) => {
+  await page.goto('/');
+  await page.click('[data-testid="start-button"]');
+  await expect(page.locator('.result')).toBeVisible();
+});
+```
 
 ## Development Workflow
 

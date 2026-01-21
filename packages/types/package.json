@@ -8,6 +8,6 @@
     "build": "echo 'No build configured for types yet'",
     "type-check": "tsc --noEmit",
     "lint": "echo 'No linting configured for types yet'",
-    "test": "echo 'No tests configured for types yet'"
+    "test": "jest"
   }
 }
