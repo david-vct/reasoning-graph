@@ -30,6 +30,8 @@ function LoginForm() {
         redirect: false,
       });
 
+      console.log('SignIn result:', result);
+
       if (result?.error) {
         setError('Invalid email or password');
         setLoading(false);
@@ -38,9 +40,14 @@ function LoginForm() {
 
       if (result?.ok) {
         // Use window.location for a full page navigation to ensure session is loaded
+        console.log('Redirecting to:', callbackUrl);
         window.location.href = callbackUrl;
+      } else {
+        setError('Authentication failed');
+        setLoading(false);
       }
-    } catch {
+    } catch (err) {
+      console.error('Login error:', err);
       setError('An unexpected error occurred');
       setLoading(false);
     }
