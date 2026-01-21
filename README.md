@@ -1,6 +1,10 @@
 # Reasoning Graph
 
+[![CI](https://github.com/david-vct/reasoning-graph/actions/workflows/ci.yml/badge.svg)](https://github.com/david-vct/reasoning-graph/actions/workflows/ci.yml)
+
 Visual reasoning tool with logical validation - Build and validate logical arguments using an interactive graph interface.
+
+<!-- CI/CD Pipeline Test: Verifying automated deployments -->
 
 ## Prerequisites
 

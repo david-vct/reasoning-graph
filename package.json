@@ -16,7 +16,7 @@
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces",
     "type-check": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

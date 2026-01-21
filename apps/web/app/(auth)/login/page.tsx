@@ -2,11 +2,10 @@
 
 import { useState, FormEvent, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/editor';
   const signupSuccess = searchParams.get('signup') === 'success';
@@ -27,8 +26,11 @@ function LoginForm() {
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
+        callbackUrl: callbackUrl,
         redirect: false,
       });
+
+      console.log('SignIn result:', result);
 
       if (result?.error) {
         setError('Invalid email or password');
@@ -37,9 +39,15 @@ function LoginForm() {
       }
 
       if (result?.ok) {
-        router.push(callbackUrl);
+        // Use window.location for a full page navigation to ensure session is loaded
+        console.log('Redirecting to:', callbackUrl);
+        window.location.href = callbackUrl;
+      } else {
+        setError('Authentication failed');
+        setLoading(false);
       }
-    } catch {
+    } catch (err) {
+      console.error('Login error:', err);
       setError('An unexpected error occurred');
       setLoading(false);
     }
