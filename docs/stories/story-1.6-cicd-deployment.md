@@ -1,7 +1,7 @@
 # Story 1.6: CI/CD Pipeline & Deployment
 
 **Epic:** [Epic 1: Foundation & Core Graph Infrastructure](../epics/epic-1-foundation.md)  
-**Status:** Draft
+**Status:** Ready for Review
 
 ## Story
 
@@ -342,9 +342,11 @@ reasoning-graph/
 ## Dev Agent Record
 
 ### Agent Model Used
+
 Claude Sonnet 4.5
 
 ### Debug Log References
+
 - Fixed useSearchParams Suspense boundary error in login page (commit 0596fdb)
 - Fixed Husky CI failure: made husky optional in CI environments (commit 4869019)
 - Fixed Vercel monorepo config: changed Root Directory to "." and adjusted build commands
@@ -352,6 +354,7 @@ Claude Sonnet 4.5
 - Fixed login redirect: use window.location.href for full page navigation (commit 9c9a80c)
 
 ### Completion Notes
+
 - Task 2 completed: Vercel project configured with monorepo root directory `apps/web`
 - Fixed build error: wrapped useSearchParams in Suspense boundary in login page
 - Build now passes successfully (✓ Compiled successfully)
@@ -360,7 +363,9 @@ Claude Sonnet 4.5
 - Task 4 in progress: Testing CI/CD pipeline end-to-end with test branch
 
 ### File List
+
 **Modified:**
+
 - `apps/web/app/(auth)/login/page.tsx` - Wrapped useSearchParams in Suspense
 - `package.json` - Made husky optional in CI environments
 - `apps/web/package.json` - Added @reasoning-graph/types as dependency
