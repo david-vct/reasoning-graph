@@ -5,3 +5,6 @@
 export const graphEngine = {
   version: '0.1.0',
 };
+
+// Export proposition system
+export * from './propositions';
