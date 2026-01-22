@@ -1,5 +1,33 @@
 import { validateDAG } from '../validation';
-import { createMockGraph } from '../../__tests__/utils/mockFactory';
+
+// Mock factory inline for this test
+const createMockGraph = (options?: any) => {
+  if (options?.hasCycle) {
+    // Create a graph with a cycle: A -> B -> C -> A
+    return {
+      nodes: [
+        { id: 'A', type: 'axiom', connections: ['B'] },
+        { id: 'B', type: 'modus-ponens', connections: ['C'] },
+        { id: 'C', type: 'modus-ponens', connections: ['A'] }, // Creates cycle back to A
+      ],
+    };
+  }
+
+  if (options?.invalidConnection) {
+    // Create a graph with an invalid connection (points to non-existent node)
+    return {
+      nodes: [
+        { id: 'A', type: 'axiom', connections: ['B'] },
+        { id: 'B', type: 'modus-ponens', connections: ['NonExistent'] }, // Invalid connection
+      ],
+    };
+  }
+
+  // Default: valid empty graph
+  return {
+    nodes: [],
+  };
+};
 
 describe('DAG Validation', () => {
   it('should validate a correct DAG without cycles', () => {

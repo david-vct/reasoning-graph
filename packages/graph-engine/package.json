@@ -9,5 +9,8 @@
     "type-check": "tsc --noEmit",
     "lint": "echo 'No linting configured for graph-engine yet'",
     "test": "jest"
+  },
+  "dependencies": {
+    "uuid": "^13.0.0"
   }
 }
