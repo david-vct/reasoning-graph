@@ -11,20 +11,22 @@
 // Base class
 export { LogicNode } from './LogicNode';
 
+// Concrete implementations
+export { AxiomNode } from './AxiomNode';
+export { ModusPonensNode } from './ModusPonensNode';
+export { ModusTollensNode } from './ModusTollensNode';
+export { SimpleAffirmationNode } from './SimpleAffirmationNode';
+
 // Types
 export {
   NodeType,
   type NodeCategory,
   type NodeTypeDefinition,
   type LogicNodeBase,
-  type AxiomNode,
-  type ModusPonensNode,
-  type ModusTollensNode,
   type SyllogismNode,
   type DisjunctionNode,
   type ReductioAdAbsurdumNode,
   type InductionNode,
-  type SimpleAffirmationNode,
   type FreeFormNode,
   type AnyLogicNode,
 } from './types';

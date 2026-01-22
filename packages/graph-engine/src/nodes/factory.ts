@@ -10,38 +10,20 @@ import { LogicNode } from './LogicNode';
 import { NodeType, LogicNodeBase } from './types';
 import { nodeTypeRegistry } from './nodeTypeRegistry';
 import { logicNodeBaseSchema } from './schemas';
+import { AxiomNode } from './AxiomNode';
+import { ModusPonensNode } from './ModusPonensNode';
+import { ModusTollensNode } from './ModusTollensNode';
+import { SimpleAffirmationNode } from './SimpleAffirmationNode';
 
 /**
- * Mock implementation classes for each node type
- * These will be replaced with real implementations in Stories 2.3-2.4
+ * Mock implementation classes for node types not yet implemented
+ * These will be replaced with real implementations in Story 2.4
  */
 
-class AxiomNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return 0; // Axioms have no premises
-  }
-  getOutputCount(): number {
-    return 1; // Axioms produce one conclusion
-  }
-}
-
-class ModusPonensNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return 2; // P→Q and P
-  }
-  getOutputCount(): number {
-    return 1; // Q
-  }
-}
-
-class ModusTollensNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return 2; // P→Q and ¬Q
-  }
-  getOutputCount(): number {
-    return 1; // ¬P
-  }
-}
+/**
+ * Mock implementation classes for node types not yet implemented
+ * These will be replaced with real implementations in Story 2.4
+ */
 
 class SyllogismNodeImpl extends LogicNode {
   getInputCount(): number {
@@ -76,15 +58,6 @@ class InductionNodeImpl extends LogicNode {
   }
   getOutputCount(): number {
     return 1; // General conclusion
-  }
-}
-
-class SimpleAffirmationNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return 1; // One premise
-  }
-  getOutputCount(): number {
-    return 1; // One conclusion
   }
 }
 
@@ -162,13 +135,13 @@ export function createNode(
 
   switch (type) {
     case NodeType.Axiom:
-      node = new AxiomNodeImpl(fullData);
+      node = new AxiomNode(fullData);
       break;
     case NodeType.ModusPonens:
-      node = new ModusPonensNodeImpl(fullData);
+      node = new ModusPonensNode(fullData);
       break;
     case NodeType.ModusTollens:
-      node = new ModusTollensNodeImpl(fullData);
+      node = new ModusTollensNode(fullData);
       break;
     case NodeType.Syllogism:
       node = new SyllogismNodeImpl(fullData);
@@ -183,7 +156,7 @@ export function createNode(
       node = new InductionNodeImpl(fullData);
       break;
     case NodeType.SimpleAffirmation:
-      node = new SimpleAffirmationNodeImpl(fullData);
+      node = new SimpleAffirmationNode(fullData);
       break;
     case NodeType.FreeForm:
       node = new FreeFormNodeImpl(fullData);
