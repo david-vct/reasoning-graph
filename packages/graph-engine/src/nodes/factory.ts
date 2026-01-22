@@ -14,68 +14,11 @@ import { AxiomNode } from './AxiomNode';
 import { ModusPonensNode } from './ModusPonensNode';
 import { ModusTollensNode } from './ModusTollensNode';
 import { SimpleAffirmationNode } from './SimpleAffirmationNode';
-
-/**
- * Mock implementation classes for node types not yet implemented
- * These will be replaced with real implementations in Story 2.4
- */
-
-/**
- * Mock implementation classes for node types not yet implemented
- * These will be replaced with real implementations in Story 2.4
- */
-
-class SyllogismNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return 2; // A→B and B→C
-  }
-  getOutputCount(): number {
-    return 1; // A→C
-  }
-}
-
-class DisjunctionNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return 1; // A
-  }
-  getOutputCount(): number {
-    return 1; // A∨B
-  }
-}
-
-class ReductioAdAbsurdumNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return 2; // Assumption and contradiction
-  }
-  getOutputCount(): number {
-    return 1; // Negation of assumption
-  }
-}
-
-class InductionNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return 2; // Base case and inductive step
-  }
-  getOutputCount(): number {
-    return 1; // General conclusion
-  }
-}
-
-class FreeFormNodeImpl extends LogicNode {
-  getInputCount(): number {
-    return -1; // Variable number of inputs
-  }
-  getOutputCount(): number {
-    return -1; // Variable number of outputs
-  }
-
-  // Override validate for free-form nodes (no structural requirements)
-  validate(): boolean {
-    this.validationState.errors = [];
-    this.validationState.isValid = true;
-    return true;
-  }
-}
+import { SyllogismNode } from './SyllogismNode';
+import { DisjunctionNode } from './DisjunctionNode';
+import { ReductioAdAbsurdumNode } from './ReductioAdAbsurdumNode';
+import { InductionNode } from './InductionNode';
+import { FreeFormNode } from './FreeFormNode';
 
 /**
  * Creates a new logic node of the specified type
@@ -143,23 +86,23 @@ export function createNode(
     case NodeType.ModusTollens:
       node = new ModusTollensNode(fullData);
       break;
-    case NodeType.Syllogism:
-      node = new SyllogismNodeImpl(fullData);
-      break;
-    case NodeType.Disjunction:
-      node = new DisjunctionNodeImpl(fullData);
-      break;
-    case NodeType.ReductioAdAbsurdum:
-      node = new ReductioAdAbsurdumNodeImpl(fullData);
-      break;
-    case NodeType.Induction:
-      node = new InductionNodeImpl(fullData);
-      break;
     case NodeType.SimpleAffirmation:
       node = new SimpleAffirmationNode(fullData);
       break;
+    case NodeType.Syllogism:
+      node = new SyllogismNode(fullData);
+      break;
+    case NodeType.Disjunction:
+      node = new DisjunctionNode(fullData);
+      break;
+    case NodeType.ReductioAdAbsurdum:
+      node = new ReductioAdAbsurdumNode(fullData);
+      break;
+    case NodeType.Induction:
+      node = new InductionNode(fullData);
+      break;
     case NodeType.FreeForm:
-      node = new FreeFormNodeImpl(fullData);
+      node = new FreeFormNode(fullData);
       break;
     default:
       // This should never happen due to the registry check

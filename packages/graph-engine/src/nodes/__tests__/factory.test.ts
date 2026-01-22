@@ -256,7 +256,7 @@ describe('createNode', () => {
         position: { x: 0, y: 0 },
       });
 
-      expect(node.getInputCount()).toBe(1);
+      expect(node.getInputCount()).toBe(2);
       expect(node.getOutputCount()).toBe(1);
     });
 
@@ -265,7 +265,7 @@ describe('createNode', () => {
         position: { x: 0, y: 0 },
       });
 
-      expect(node.getInputCount()).toBe(2);
+      expect(node.getInputCount()).toBe(1);
       expect(node.getOutputCount()).toBe(1);
     });
 

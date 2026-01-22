@@ -87,3 +87,85 @@ export class NodeTypeRegistry {
  * Used throughout the application
  */
 export const nodeTypeRegistry = new NodeTypeRegistry();
+
+// Register all node types
+nodeTypeRegistry.register({
+  type: NodeType.Axiom,
+  label: 'Axiom',
+  description: 'Foundational truth requiring no premises',
+  inputCount: 0,
+  outputCount: 1,
+  category: 'foundational',
+});
+
+nodeTypeRegistry.register({
+  type: NodeType.ModusPonens,
+  label: 'Modus Ponens',
+  description: 'Given P→Q and P, conclude Q',
+  inputCount: 2,
+  outputCount: 1,
+  category: 'inference',
+});
+
+nodeTypeRegistry.register({
+  type: NodeType.ModusTollens,
+  label: 'Modus Tollens',
+  description: 'Given P→Q and ¬Q, conclude ¬P',
+  inputCount: 2,
+  outputCount: 1,
+  category: 'inference',
+});
+
+nodeTypeRegistry.register({
+  type: NodeType.SimpleAffirmation,
+  label: 'Simple Affirmation',
+  description: 'Direct pass-through of a premise to a conclusion',
+  inputCount: 1,
+  outputCount: 1,
+  category: 'foundational',
+});
+
+nodeTypeRegistry.register({
+  type: NodeType.Syllogism,
+  label: 'Syllogism',
+  description: 'Classic syllogistic reasoning with major and minor premises',
+  inputCount: 2,
+  outputCount: 1,
+  category: 'inference',
+});
+
+nodeTypeRegistry.register({
+  type: NodeType.Disjunction,
+  label: 'Disjunctive Syllogism',
+  description: 'Given P∨Q and ¬P, conclude Q',
+  inputCount: 2,
+  outputCount: 1,
+  category: 'inference',
+});
+
+nodeTypeRegistry.register({
+  type: NodeType.ReductioAdAbsurdum,
+  label: 'Reductio Ad Absurdum',
+  description: 'Proof by contradiction: If P leads to absurdity, then ¬P',
+  inputCount: 1,
+  outputCount: 1,
+  category: 'advanced',
+});
+
+nodeTypeRegistry.register({
+  type: NodeType.Induction,
+  label: 'Mathematical Induction',
+  description: 'Prove base case and inductive step for all natural numbers',
+  inputCount: 2,
+  outputCount: 1,
+  category: 'advanced',
+});
+
+nodeTypeRegistry.register({
+  type: NodeType.FreeForm,
+  label: 'Free Form',
+  description: 'Flexible node with dynamic premises (0-5) and conclusions (1-3)',
+  inputCount: -1, // Dynamic
+  outputCount: -1, // Dynamic
+  category: 'special',
+});

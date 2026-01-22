@@ -16,6 +16,11 @@ export { AxiomNode } from './AxiomNode';
 export { ModusPonensNode } from './ModusPonensNode';
 export { ModusTollensNode } from './ModusTollensNode';
 export { SimpleAffirmationNode } from './SimpleAffirmationNode';
+export { SyllogismNode } from './SyllogismNode';
+export { DisjunctionNode } from './DisjunctionNode';
+export { ReductioAdAbsurdumNode } from './ReductioAdAbsurdumNode';
+export { InductionNode } from './InductionNode';
+export { FreeFormNode, FREEFORM_CONSTRAINTS } from './FreeFormNode';
 
 // Types
 export {
@@ -23,11 +28,6 @@ export {
   type NodeCategory,
   type NodeTypeDefinition,
   type LogicNodeBase,
-  type SyllogismNode,
-  type DisjunctionNode,
-  type ReductioAdAbsurdumNode,
-  type InductionNode,
-  type FreeFormNode,
   type AnyLogicNode,
 } from './types';
 
