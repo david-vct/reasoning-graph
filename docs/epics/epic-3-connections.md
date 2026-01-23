@@ -6,9 +6,10 @@
 
 - [Story 3.1: Connection Modes Implementation](story-3.1-connection-modes.md)
 - [Story 3.2: Logic Validation Engine](story-3.2-logic-validation-engine.md)
-- [Story 3.3: Cycle Detection & Prevention](story-3.3-cycle-detection.md)
-- [Story 3.4: Validation Cascade Propagation](story-3.4-validation-propagation.md)
-- [Story 3.5: Axiom Contradiction Detection](story-3.5-axiom-contradiction-detection.md)
+- [Story 3.3: Cycle Detection & Prevention](../stories/story-3.3-cycle-detection.md)
+- [Story 3.4: Validation Cascade Propagation](../stories/story-3.4-validation-propagation.md)
+- [Story 3.5: Axiom Contradiction Detection](../stories/story-3.5-axiom-contradiction-detection.md)
+- [Story 3.6: Node Validation Visual Feedback](../stories/story-3.6-node-validation-visual-feedback.md) ⭐ **NOUVEAU**
 
 ## Success Criteria
 

@@ -4,10 +4,13 @@
 
 ## Stories
 
-- [Story 2.1: Proposition System & Type Definitions](story-2.1-proposition-system.md)
-- [Story 2.2: Abstract Node Base Class & Type System](story-2.2-abstract-node.md)
-- [Story 2.3: Concrete Node Type Implementations (Part 1)](story-2.3-node-types-part1.md)
-- [Story 2.4: Concrete Node Type Implementations (Part 2)](story-2.4-node-types-part2.md)
+- [Story 2.1: Proposition System & Type Definitions](../stories/story-2.1-proposition-system.md)
+- [Story 2.2: Abstract Node Base Class & Type System](../stories/story-2.2-abstract-node.md)
+- [Story 2.3: Concrete Node Type Implementations (Part 1)](../stories/story-2.3-node-types-part1.md)
+- [Story 2.4: Concrete Node Type Implementations (Part 2)](../stories/story-2.4-node-types-part2.md)
+- [Story 2.5: Logic Node Visual Components](../stories/story-2.5-logic-node-visual-components.md) ⭐ **CRITIQUE - Débloque Epic 3**
+- [Story 2.6: Node Type Creation Menu](../stories/story-2.6-node-type-creation-menu.md)
+- [Story 2.7: Proposition Inline Editing](../stories/story-2.7-proposition-inline-editing.md)
 
 ## Success Criteria
 

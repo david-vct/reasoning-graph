@@ -12,20 +12,24 @@
 - ✅ Story 1.7: Testing Infrastructure Setup
 - ✅ Story 1.6: CI/CD Pipeline & Deployment
 
-### Epic 2 - Node Types (4 stories)
+### Epic 2 - Node Types (7 stories) ✅ COMPLET
 
 - ✅ Story 2.1: Proposition System & Type Definitions
 - ✅ Story 2.2: Abstract Node Base Class & Type System
 - ✅ Story 2.3: Concrete Node Type Implementations (Part 1)
 - ✅ Story 2.4: Concrete Node Type Implementations (Part 2)
+- ✅ Story 2.5: Logic Node Visual Components ⭐ NOUVEAU
+- ✅ Story 2.6: Node Type Creation Menu ⭐ NOUVEAU
+- ✅ Story 2.7: Proposition Inline Editing ⭐ NOUVEAU
 
-### Epic 3 - Connections & Validation (5 stories)
+### Epic 3 - Connections & Validation (6 stories) ✅ COMPLET
 
 - ✅ Story 3.1: Connection Modes Implementation
 - ✅ Story 3.2: Logic Validation Engine
 - ✅ Story 3.3: Cycle Detection & Prevention
 - ✅ Story 3.4: Validation Cascade Propagation
 - ✅ Story 3.5: Axiom Contradiction Detection
+- ✅ Story 3.6: Node Validation Visual Feedback ⭐ NOUVEAU
 
 ### Epic 4 - Auto-Layout (4 stories)
 
@@ -57,7 +61,7 @@
 
 ## 📊 Statistique
 
-- **Stories créées:** 32/32 (100%) 🎉
+- **Stories créées:** 36/36 (100%) 🎉
 - **Stories restantes:** 0
 - **Epics complets:** 7/7 (100%)
 - **Epics partiels:** 0
@@ -65,7 +69,7 @@
 
 ## 🎯 Changements Effectués
 
-### Nouvelles Stories (10 ajoutées)
+### Nouvelles Stories Initiales (10 ajoutées)
 
 1. Story 5.3: Container Validation Cascade
 2. Story 5.4: Nested Container Cycle Detection
@@ -77,6 +81,13 @@
 8. Story 7.2: Public Library UI & Discovery
 9. Story 7.3: Library Search & Filtering
 10. Story 7.4: User Help System & In-App Documentation
+
+### Corrections Post-Validation PO (4 ajoutées - 23 janvier 2026)
+
+11. Story 2.5: Logic Node Visual Components ⭐ CRITIQUE
+12. Story 2.6: Node Type Creation Menu
+13. Story 2.7: Proposition Inline Editing
+14. Story 3.6: Node Validation Visual Feedback
 
 ### Ordre Corrigé
 
@@ -104,4 +115,11 @@ Tous les epics ont maintenant leurs stories détaillées avec:
 - Story 7.2: Ajout skeleton loaders pour meilleure UX
 - Story 7.4: Nouveau - User Help System pour accessibilité
 
-**Total temps estimé:** ~113-123 jours développement (23-25 semaines pour 1 dev)
+**Total temps estimé:** ~129-143 jours développement (26-29 semaines pour 1 dev)
+
+**Corrections post-validation:**
+
+- Story 2.5 débloque Epic 3 (critique)
+- Stories 2.6-2.7 complètent l'expérience UI nodes
+- Story 3.6 ferme la boucle validation visuelle
+- +16-20 jours ajoutés pour 4 nouvelles stories
