@@ -1,0 +1,1876 @@
+# Reasoning Graph - Architecture Full-Stack
+
+**Version:** 1.1  
+**Date:** 23 janvier 2026  
+**Auteur:** Winston (Architect)
+
+---
+
+## 1. Introduction
+
+Ce document décrit l'architecture full-stack complète de **Reasoning Graph**, incluant les systèmes backend, l'implémentation frontend et leur intégration. Il constitue la source unique de vérité pour le développement assisté par IA, garantissant la cohérence sur l'ensemble de la stack technologique.
+
+Cette approche unifiée combine ce qui serait traditionnellement des documents d'architecture backend et frontend séparés, rationalisant le processus de développement pour les applications full-stack modernes où ces préoccupations sont de plus en plus imbriquées.
+
+**Documentation Complémentaire:**
+
+- **[Front-End UX Specification](front-end-spec.md)** (v1.0, 23 janvier 2026) - Spécifications détaillées des composants UI, interactions utilisateur, et guidelines de design visuel
+- **[PRD](prd.md)** (v4) - Product Requirements Document définissant les fonctionnalités et objectifs métier
+- **[Stories](stories/)** - User stories détaillées pour l'implémentation itérative
+
+### Starter Template ou Projet Existant
+
+**Statut:** Projet greenfield - Pas de template starter spécifié
+
+**Décision:** Architecture pure Next.js 14 avec App Router + MongoDB pour flexibilité maximale avec le rendu graphique et l'évolution des schémas MongoDB à mesure que le système logique mature.
+
+**Justification:** Next.js est explicitement spécifié dans le PRD avec MongoDB Atlas pour la flexibilité des schémas, essentielle pour l'évolution du système de propositions logiques. Pas de starter template pour éviter les contraintes framework et optimiser l'intégration React Flow.
+
+### Change Log
+
+| Date       | Version | Description                                                                                                                                    | Auteur  |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 2026-01-15 | 1.0     | Architecture initiale                                                                                                                          | Winston |
+| 2026-01-23 | 1.1     | Ajout section 9.5: Frontend UI Component Architecture avec spécifications UX complètes (composants, design system, accessibilité, performance) | Winston |
+
+---
+
+## 2. High Level Architecture
+
+### Technical Summary
+
+**Reasoning Graph** adopte une architecture **full-stack Next.js moderne** avec déploiement serverless sur Vercel. L'application utilise **Next.js 14+ avec App Router** pour le frontend React et les API Routes pour le backend, créant ainsi un monolithe élégant où frontend et backend partagent le même runtime Node.js et les mêmes types TypeScript. Le moteur de graphe logique, développé en TypeScript dans un package monorepo dédié, exploite **React Flow 11+** pour le rendu visuel des DAG (Directed Acyclic Graphs) et **graphlib** pour la validation topologique. L'état du graphe côté client est géré par **Zustand** pour des performances optimales lors de manipulations complexes de centaines de nodes. Le backend MongoDB Atlas (free tier) stocke les graphes persistants via **Mongoose**, tandis que **NextAuth.js v5** gère l'authentification JWT. Cette architecture serverless offre un excellent équilibre entre simplicité de développement (monorepo TypeScript unifié), scalabilité automatique (fonctions Vercel), et coût minimal (tiers gratuits), tout en permettant une validation logique en temps réel côté client et une collaboration future via partage de graphes publics.
+
+### Platform and Infrastructure Choice
+
+**Plateforme:** Vercel  
+**Services Clés:** Vercel Edge Network (CDN), Vercel Functions (API Routes), MongoDB Atlas M0  
+**Déploiement et Régions:** Région primaire US-East (Vercel) + MongoDB Atlas US-East-1 (minimiser latence inter-services)
+
+**Justification:** Vercel est conçu pour Next.js, offrant le meilleur DX et temps de déploiement. MongoDB Atlas est explicitement requis dans le PRD pour flexibilité des schémas. Combinaison parfaite pour itération rapide et coûts nuls en MVP.
+
+### Repository Structure
+
+**Structure:** Monorepo (npm workspaces)  
+**Outil Monorepo:** npm workspaces natif  
+**Organisation des Packages:**
+
+```
+reasoning-graph/
+├── apps/
+│   └── web/                    # Next.js 14 App (frontend + API routes)
+├── packages/
+│   ├── graph-engine/           # ⭐ Cœur: validation logique, DAG algorithms
+│   ├── ui-components/          # Composants React réutilisables
+│   └── types/                  # Types TypeScript partagés
+```
+
+### High Level Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Client Browser"
+        UI[React UI - Next.js App Router]
+        ReactFlow[React Flow Canvas]
+        Zustand[Zustand State Store]
+        GraphEngine[Graph Engine Package]
+    end
+
+    subgraph "Vercel Edge Network"
+        CDN[Static Assets CDN]
+        EdgeFunctions[Edge Middleware<br/>Auth check]
+    end
+
+    subgraph "Vercel Functions - Node.js Runtime"
+        APIRoutes[Next.js API Routes]
+        NextAuth[NextAuth.js v5]
+        Mongoose[Mongoose ODM]
+    end
+
+    subgraph "External Services"
+        MongoDB[(MongoDB Atlas M0<br/>Free Tier)]
+    end
+
+    User((User)) -->|HTTPS| UI
+    UI <--> ReactFlow
+    UI <--> Zustand
+    Zustand --> GraphEngine
+    ReactFlow --> GraphEngine
+
+    UI -->|API Calls| EdgeFunctions
+    EdgeFunctions -->|Auth OK| APIRoutes
+    APIRoutes --> NextAuth
+    APIRoutes --> Mongoose
+    Mongoose -->|TCP| MongoDB
+
+    UI -.->|Static Assets| CDN
+
+    style GraphEngine fill:#10B981
+    style MongoDB fill:#4DB33D
+```
+
+### Architectural Patterns
+
+- **Jamstack Architecture avec SSR Hybride:** Pages statiques pré-rendues + SSR pour pages nécessitant auth + CSR pour interactions canvas - _Rationale:_ Optimise performance tout en permettant édition temps réel fluide
+
+- **Monolithic Full-Stack (Next.js as BFF):** Frontend et backend dans même application Next.js, API Routes servant de Backend-for-Frontend - _Rationale:_ Simplifie déploiement, partage types TypeScript, réduit latence réseau
+
+- **Component-Based UI avec Atomic Design:** Composants React organisés en atomes, molécules, organismes - _Rationale:_ Réutilisabilité et testabilité
+
+- **Repository Pattern pour Data Access:** Couche d'abstraction Mongoose isolant logique métier des détails MongoDB - _Rationale:_ Facilite tests et migration DB future
+
+- **CQRS Léger:** Séparation read/write avec validation Zod différente - _Rationale:_ Optimisations ciblées
+
+- **Client-Side Validation Engine:** Validation logique complète côté client avec Web Workers pour graphes >100 nodes - _Rationale:_ Feedback <100ms, réduit charge serveur
+
+- **Serverless Functions Architecture:** API Routes déployées comme fonctions serverless auto-scaling - _Rationale:_ Coût nul au repos, scaling automatique
+
+---
+
+## 3. Tech Stack
+
+Cette table constitue la source unique de vérité - tout développement doit utiliser exactement ces versions.
+
+| Catégorie                | Technologie        | Version             | Objectif                     | Justification                                      |
+| ------------------------ | ------------------ | ------------------- | ---------------------------- | -------------------------------------------------- |
+| **Frontend Language**    | TypeScript         | 5.3+                | Langage principal frontend   | Type safety cruciale pour graph engine complexe    |
+| **Frontend Framework**   | Next.js            | 14.1+               | Framework React full-stack   | App Router avec RSC, API Routes intégrées          |
+| **UI Component Library** | React              | 18.2+               | Bibliothèque UI              | Standard industrie, React Flow compatible          |
+| **Graph Rendering**      | React Flow         | 11.10+              | Canvas de graphe interactif  | Solution mature pour DAG editing                   |
+| **State Management**     | Zustand            | 4.5+                | Store global léger           | Minimal boilerplate, excellent pour state complexe |
+| **UI Component Library** | shadcn/ui          | Latest              | Composants UI réutilisables  | Components Tailwind copiables, Radix UI accessible |
+| **CSS Framework**        | Tailwind CSS       | 3.4+                | Styling utility-first        | Rapid prototyping, design system via config        |
+| **Backend Language**     | TypeScript         | 5.3+                | Langage API Routes           | Partage types avec frontend                        |
+| **Backend Framework**    | Next.js API Routes | 14.1+               | Endpoints REST serverless    | Pas de serveur séparé, déploiement unifié          |
+| **API Style**            | REST               | -                   | Architecture API             | Simplicité, caching HTTP standard                  |
+| **Database**             | MongoDB            | 7.0+                | Base de données NoSQL        | Free tier Atlas, schémas flexibles                 |
+| **ORM/ODM**              | Mongoose           | 8.1+                | Object Document Mapper       | Validation schemas, TypeScript support             |
+| **Cache**                | Vercel KV (Redis)  | Latest              | Cache in-memory serverless   | Free tier 256MB, ultra-rapide                      |
+| **File Storage**         | Vercel Blob        | Latest              | Stockage fichiers (future)   | Free tier 5GB, prêt pour export PNG/PDF            |
+| **Authentication**       | NextAuth.js        | 5.0+ (beta)         | Auth avec JWT                | Provider credentials, session JWT                  |
+| **Validation**           | Zod                | 3.22+               | Runtime validation           | Infer TypeScript types, schemas réutilisables      |
+| **Frontend Testing**     | Jest               | 29.7+               | Unit tests composants React  | Standard industrie, React Testing Library          |
+| **Backend Testing**      | Jest               | 29.7+               | Unit tests API Routes        | Même runner que frontend                           |
+| **E2E Testing**          | Playwright         | 1.41+               | Tests end-to-end             | Multi-browser, debug UI excellent                  |
+| **Build Tool**           | Turbopack          | Built-in Next.js 14 | Build et dev server          | Rust-powered ultra rapide                          |
+| **Bundler**              | Turbopack          | Built-in Next.js 14 | Bundling production          | Tree-shaking optimal                               |
+| **Graph Algorithms**     | graphlib           | 2.1+                | DAG validation et topo sort  | Détection cycles O(n)                              |
+| **Layout Engine**        | @dagrejs/dagre     | 1.1+                | Auto-arrangement graphe      | Algorithme Sugiyama layout                         |
+| **IaC Tool**             | Vercel CLI         | Latest              | Infrastructure as Code       | Configuration vercel.json                          |
+| **CI/CD**                | GitHub Actions     | N/A                 | Pipeline CI/CD               | Free pour repos publics                            |
+| **Monitoring**           | Vercel Analytics   | Latest (free tier)  | Analytics et Core Web Vitals | Real User Monitoring                               |
+| **Logging**              | Vercel Logs        | Latest              | Logs serverless functions    | Tail logs en temps réel                            |
+| **Error Tracking**       | Sentry             | Free tier           | Tracking erreurs production  | 5k events/mois gratuit                             |
+
+---
+
+## 4. Data Models
+
+Les modèles de données constituent l'épine dorsale de Reasoning Graph, partagés entre frontend (TypeScript interfaces) et backend (Mongoose schemas).
+
+### User
+
+**Objectif:** Représente un utilisateur authentifié du système.
+
+**Attributs Clés:**
+
+- `_id`: ObjectId - Identifiant unique MongoDB
+- `email`: string - Email unique
+- `name`: string - Nom d'affichage
+- `passwordHash`: string - Mot de passe hashé (bcrypt)
+- `createdAt`: Date
+- `graphQuota`: number - Max graphes (default: 50)
+- `preferences`: Object - Préférences UI
+
+**TypeScript Interface:**
+
+```typescript
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: Date;
+  graphQuota: number;
+  preferences: {
+    theme: 'light' | 'dark';
+    connectionMode: 'drag-drop' | 'click-click';
+  };
+}
+```
+
+**Relations:** Un User possède plusieurs ReasoningGraphs (one-to-many)
+
+### ReasoningGraph
+
+**Objectif:** Représente un graphe de raisonnement complet.
+
+**Attributs Clés:**
+
+- `_id`: ObjectId
+- `title`: string
+- `description`: string
+- `ownerId`: ObjectId (ref User)
+- `isPublic`: boolean (default: true)
+- `nodes`: LogicNode[] (embedded)
+- `edges`: Edge[] (embedded)
+- `clonedFrom`: { graphId, originalAuthor }
+- `tags`: string[]
+- `category`: string
+
+**TypeScript Interface:**
+
+```typescript
+export interface ReasoningGraph {
+  id: string;
+  title: string;
+  description?: string;
+  ownerId: string;
+  ownerName: string;
+  isPublic: boolean;
+  nodes: LogicNode[];
+  edges: Edge[];
+  createdAt: Date;
+  updatedAt: Date;
+  clonedFrom?: {
+    graphId: string;
+    originalAuthor: string;
+  };
+  tags: string[];
+  category: string;
+  validationStatus: 'valid' | 'invalid' | 'partial';
+}
+```
+
+### LogicNode
+
+**Objectif:** Nœud logique polymorphe avec discriminateur `type`.
+
+**Types:** axiom, modus-ponens, modus-tollens, syllogism, disjunction, reductio-ad-absurdum, induction, simple-affirmation, free-form, container
+
+**TypeScript Interface:**
+
+```typescript
+export type NodeType =
+  | 'axiom'
+  | 'modus-ponens'
+  | 'modus-tollens'
+  | 'syllogism'
+  | 'disjunction'
+  | 'reductio-ad-absurdum'
+  | 'induction'
+  | 'simple-affirmation'
+  | 'free-form'
+  | 'container';
+
+export interface LogicNodeBase {
+  id: string;
+  type: NodeType;
+  position: { x: number; y: number };
+  annotation?: string;
+  validationState: {
+    isValid: boolean;
+    errors: string[];
+    affectedDescendants: string[];
+  };
+}
+
+export type LogicNode =
+  | AxiomNode
+  | ModusPonensNode
+  | ModusTollensNode
+  | SyllogismNode
+  | DisjunctionNode
+  | ReductioAdAbsurdumNode
+  | InductionNode
+  | SimpleAffirmationNode
+  | FreeFormNode
+  | ContainerNode;
+```
+
+### Proposition
+
+**Objectif:** Proposition logique typée avec type formel.
+
+**TypeScript Interface:**
+
+```typescript
+export type PropositionType =
+  | 'simple'
+  | 'implication'
+  | 'negation'
+  | 'disjunction'
+  | 'conjunction'
+  | 'universal'
+  | 'existential';
+
+export interface Proposition {
+  id: string;
+  content: string;
+  propType: PropositionType;
+  subPropositions?: {
+    antecedent?: Proposition;
+    consequent?: Proposition;
+    left?: Proposition;
+    right?: Proposition;
+  };
+}
+```
+
+### Edge
+
+**Objectif:** Connexion dirigée entre nodes.
+
+**TypeScript Interface:**
+
+```typescript
+export interface Edge {
+  id: string;
+  sourceNodeId: string;
+  sourceOutputIndex: number;
+  targetNodeId: string;
+  targetInputIndex: number;
+  isValid: boolean;
+  validationError?: string;
+}
+```
+
+---
+
+## 5. API Specification
+
+L'API REST suit les principes RESTful avec endpoints organisés par ressource. Tous les endpoints sont des Next.js API Routes serverless.
+
+### Endpoints Principaux
+
+**Authentication:**
+
+- `POST /api/auth/signup` - Créer compte
+- `GET /api/auth/session` - Session actuelle
+
+**Users:**
+
+- `GET /api/users/me` - Profil utilisateur
+- `PATCH /api/users/me` - Mettre à jour profil
+
+**Graphs:**
+
+- `GET /api/graphs` - Lister graphes (filtres: my-graphs, public)
+- `POST /api/graphs` - Créer graphe
+- `GET /api/graphs/:id` - Récupérer graphe
+- `PATCH /api/graphs/:id` - Mettre à jour
+- `DELETE /api/graphs/:id` - Supprimer
+- `POST /api/graphs/:id/clone` - Cloner graphe public
+- `POST /api/graphs/:id/validate` - Valider côté serveur
+
+**Library:**
+
+- `GET /api/library/featured` - Graphes mis en avant
+- `GET /api/library/categories` - Liste catégories
+
+**System:**
+
+- `GET /api/health` - Health check
+
+### Schémas de Données
+
+Voir OpenAPI 3.0 specification complète dans la section précédente pour schemas détaillés (User, ReasoningGraph, LogicNode, Proposition, Edge).
+
+### Authentification
+
+JWT via NextAuth.js dans header `Authorization: Bearer <token>` ou session cookie.
+
+### Rate Limiting
+
+- Authentifiés: 100 req/min
+- Publics: 20 req/min
+
+---
+
+## 6. Components
+
+### Frontend - GraphCanvas
+
+**Responsabilité:** Composant principal orchestrant l'éditeur de graphe visuel avec React Flow.
+
+**Interfaces:**
+
+- `GraphCanvasProps`: { graphId, initialGraph, onSave, readOnly }
+- `useGraphStore()`: Hook Zustand
+
+**Stack:** React 18, TypeScript, React Flow, Tailwind CSS
+
+### Frontend - NodeRenderer
+
+**Responsabilité:** Rendu visuel polymorphe de chaque LogicNode avec notation formelle.
+
+**Stack:** React, TypeScript, Tailwind, Lucide Icons
+
+### Frontend - GraphValidationEngine
+
+**Responsabilité:** Package autonome exécutant validation logique côté client.
+
+**Interfaces:**
+
+- `validateGraph(graph): ValidationResult`
+- `detectCycles(nodes, edges): string[][]`
+- `validateNodeLogic(node): NodeValidationResult`
+- `propagateInvalidity(invalidNodeIds, graph): string[]`
+
+**Stack:** TypeScript, graphlib, Web Worker capable
+
+### Frontend - StateManagement (Zustand)
+
+**Responsabilité:** Store global gérant état graphe, undo/redo, sélection.
+
+**Stack:** Zustand 4.5+, immer
+
+### Frontend - AutoLayoutService
+
+**Responsabilité:** Calcul layout optimal avec ordre topologique gauche→droite.
+
+**Stack:** TypeScript, Dagre
+
+### Backend - GraphRepository
+
+**Responsabilité:** Data access layer pour ReasoningGraph (pattern Repository).
+
+**Méthodes:**
+
+- `findById(graphId, userId?)`
+- `create(graph, ownerId)`
+- `update(graphId, updates, userId)`
+- `delete(graphId, userId)`
+- `clone(sourceGraphId, newOwnerId)`
+- `findPublic(filters, pagination)`
+
+**Stack:** TypeScript, Mongoose
+
+### Backend - UserRepository
+
+**Responsabilité:** Data access pour User.
+
+**Stack:** TypeScript, Mongoose, bcrypt
+
+### Backend - ValidationService
+
+**Responsabilité:** Validation côté serveur (sécurité).
+
+**Stack:** TypeScript, graph-engine package
+
+### Backend - AuthMiddleware
+
+**Responsabilité:** JWT verification et protection routes.
+
+**Stack:** NextAuth.js 5, jose
+
+### Backend - CacheService
+
+**Responsabilité:** Cache Redis pour graphes publics.
+
+**Stack:** Vercel KV (Redis)
+
+---
+
+## 7. Core Workflows
+
+### Workflow 1: Création et Sauvegarde d'un Graphe
+
+User crée nodes → validation temps réel côté client → sauvegarde → validation serveur → stockage MongoDB
+
+### Workflow 2: Détection de Cycle en Temps Réel
+
+User connecte nodes → détection cycle avec graphlib → si cycle: rejet, sinon: validation type → propagation erreurs
+
+### Workflow 3: Navigation Container Fractal
+
+User double-clic container → chargement sous-graphe (cache Redis ou MongoDB) → affichage breadcrumb → navigation retour
+
+### Workflow 4: Clone/Fork Graphe Public
+
+User browse bibliothèque → clic "Clone" → deep copy avec nouveaux IDs → traçabilité originalAuthor → redirect éditeur
+
+### Workflow 5: Auto-Layout Topologique
+
+User clic "Auto-Arrange" → topological sort → Dagre layout gauche→droite → animation smooth vers nouvelles positions
+
+### Workflow 6: Détection Contradiction Axiomes
+
+User crée axiomes contradictoires (P et ¬P) → validation détecte contradiction → marque invalide → warning banner
+
+---
+
+## 8. Database Schema
+
+### User Schema (Mongoose)
+
+```typescript
+const UserSchema = new Schema({
+  email: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  passwordHash: { type: String, required: true, select: false },
+  createdAt: { type: Date, default: Date.now },
+  graphQuota: { type: Number, default: 50 },
+  preferences: {
+    theme: { type: String, enum: ['light', 'dark'], default: 'light' },
+    connectionMode: { type: String, enum: ['drag-drop', 'click-click'] },
+  },
+});
+
+UserSchema.index({ email: 1 }, { unique: true });
+```
+
+### ReasoningGraph Schema (Mongoose)
+
+```typescript
+const ReasoningGraphSchema = new Schema(
+  {
+    title: { type: String, required: true, maxlength: 100 },
+    description: { type: String, maxlength: 500 },
+    ownerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    ownerName: { type: String, required: true },
+    isPublic: { type: Boolean, default: true },
+    nodes: {
+      type: [LogicNodeSchema],
+      validate: { validator: (nodes) => nodes.length <= 200 },
+    },
+    edges: [EdgeSchema],
+    clonedFrom: ClonedFromSchema,
+    tags: [String],
+    category: String,
+  },
+  { timestamps: true }
+);
+
+// Indexes
+ReasoningGraphSchema.index({ ownerId: 1, createdAt: -1 });
+ReasoningGraphSchema.index({ isPublic: 1, category: 1, createdAt: -1 });
+ReasoningGraphSchema.index({ isPublic: 1, tags: 1 });
+ReasoningGraphSchema.index({ title: 'text', description: 'text' });
+```
+
+### Database Indexes Summary
+
+| Collection | Index                           | Type     | Purpose             |
+| ---------- | ------------------------------- | -------- | ------------------- |
+| users      | email                           | Unique   | Login lookup        |
+| graphs     | ownerId                         | Standard | "My graphs" queries |
+| graphs     | isPublic                        | Standard | Public filtering    |
+| graphs     | {isPublic, category, createdAt} | Compound | Library browsing    |
+| graphs     | {title, description}            | Text     | Full-text search    |
+
+### MongoDB Atlas Configuration
+
+- **Cluster:** M0 Free Tier (512MB)
+- **Region:** AWS US-East-1
+- **Database:** reasoning-graph
+- **Estimated Storage:** ~60 MB pour MVP (452 MB margin)
+
+---
+
+## 9. Frontend Architecture
+
+### Component Organization
+
+```
+apps/web/
+├── app/                    # Next.js App Router
+│   ├── (auth)/
+│   ├── (dashboard)/
+│   └── api/
+├── components/
+│   ├── editor/
+│   ├── library/
+│   ├── ui/                # shadcn/ui
+│   └── shared/
+├── hooks/
+├── stores/                # Zustand stores
+├── services/              # API clients
+└── lib/                   # Utilities
+```
+
+### State Management (Zustand)
+
+**Store Structure:**
+
+```typescript
+interface GraphStore {
+  currentGraph: ReasoningGraph | null;
+  history: HistoryState;
+  selectedNodeIds: string[];
+  editorMode: 'select' | 'connect' | 'pan';
+  breadcrumb: string[];
+
+  // Actions
+  addNode(node): void;
+  updateNode(id, updates): void;
+  deleteNode(id): void;
+  undo(): void;
+  redo(): void;
+  validateCurrentGraph(): void;
+}
+```
+
+**Pattern: Selective Subscriptions**
+
+```typescript
+const nodes = useGraphStore((state) => state.currentGraph?.nodes);
+```
+
+### Routing Architecture
+
+**Routes:**
+
+- `(auth)/login` - Page login
+- `(auth)/signup` - Page signup
+- `(dashboard)/editor` - Éditeur graphe (protected)
+- `(dashboard)/library` - Bibliothèque publique
+- `(dashboard)/my-graphs` - Mes graphes (protected)
+
+**Protection:** Next.js middleware vérifie JWT avant render
+
+### Frontend Services
+
+**API Client:**
+
+```typescript
+class ApiClient {
+  async get<T>(endpoint): Promise<T>;
+  async post<T>(endpoint, data): Promise<T>;
+  async patch<T>(endpoint, data): Promise<T>;
+  async delete(endpoint): Promise<void>;
+}
+```
+
+**GraphService:**
+
+```typescript
+export const graphService = {
+  getMyGraphs(params),
+  getPublicGraphs(params),
+  getGraphById(id),
+  createGraph(data),
+  updateGraph(id, updates),
+  cloneGraph(id),
+  validateGraph(id),
+};
+```
+
+---
+
+## 9.5. Frontend UI Component Architecture
+
+Cette section définit l'architecture détaillée des composants visuels pour les nodes logiques, basée sur la spécification UX v1.0 (23 janvier 2026). Elle complète l'architecture frontend existante avec des guidelines précises pour l'implémentation des interfaces utilisateur.
+
+### Component Hierarchy & Organization
+
+```
+apps/web/components/
+├── editor/
+│   ├── GraphCanvas.tsx           # Orchestrateur principal React Flow
+│   ├── logic-nodes/
+│   │   ├── LogicNodeBase.tsx     # ⭐ Composant base réutilisable
+│   │   ├── AxiomNode.tsx         # Implémentation spécifique Axiom
+│   │   ├── ModusPonensNode.tsx
+│   │   ├── ModusTollensNode.tsx
+│   │   ├── SyllogismNode.tsx
+│   │   ├── DisjunctionNode.tsx
+│   │   ├── ReductioNode.tsx
+│   │   ├── InductionNode.tsx
+│   │   ├── SimpleAffirmationNode.tsx
+│   │   └── FreeFormNode.tsx
+│   ├── propositions/
+│   │   ├── PropositionDisplay.tsx  # ⭐ Affichage/édition proposition
+│   │   └── PropositionEditor.tsx   # Inline editor
+│   ├── NodeTypeMenu.tsx            # ⭐ Menu contextuel création
+│   ├── NodeValidationIndicator.tsx # ⭐ Badge validation
+│   └── ConnectionLine.tsx          # Ligne de connexion custom
+├── ui/                              # shadcn/ui components
+└── shared/                          # Composants génériques
+```
+
+**Design Pattern:** Tous les types de nodes (Axiom, ModusPonens, etc.) héritent de `LogicNodeBase` et passent leurs props spécifiques. Ceci garantit une uniformité visuelle tout en permettant la personnalisation par type.
+
+### Core Component Specifications
+
+#### LogicNodeBase - Composant Fondation
+
+**Responsabilité:** Fournir la structure visuelle uniforme pour tous les types de nodes logiques.
+
+**Props Interface:**
+
+```typescript
+interface LogicNodeBaseProps {
+  id: string;
+  type: NodeType;
+  label: string; // "Modus Ponens"
+  notation: string; // "P → Q"
+  icon: React.ReactNode; // Icône du type
+  premises: PropositionDisplayData[];
+  conclusions: PropositionDisplayData[];
+  validationState: NodeValidationState;
+  selected: boolean;
+  isReadOnly?: boolean;
+  onPropositionEdit: (propId: string, content: string) => void;
+}
+
+interface PropositionDisplayData {
+  id: string;
+  content: string;
+  placeholder: string; // "P → Q" si vide
+  isEmpty: boolean;
+  type: 'premise' | 'conclusion';
+  position: number;
+}
+
+interface NodeValidationState {
+  isValid: boolean;
+  status: 'valid' | 'invalid' | 'warning' | 'neutral';
+  errors: string[];
+}
+```
+
+**Visual Structure:**
+
+```
+┌─────────────────────────────────────┐
+│ 🔶 Label           [Notation]       │ ← HEADER (40px)
+├─────────────────────────────────────┤
+│ ○ Premise 1                         │ ← PREMISES ZONE
+│ ○ Premise 2                         │   (32px per item min)
+├─────────────────────────────────────┤
+│ Conclusion 1                      ○ │ ← CONCLUSIONS ZONE
+└─────────────────────────────────────┘
+```
+
+**Fixed Dimensions:**
+
+- Width: **280px** (fixe pour cohérence visuelle)
+- Min height: 100px
+- Max height: 400px (scrollable au-delà)
+- Border radius: 8px
+- Border width: 2px (standard), 3px (selected)
+- Padding interne: 12px
+- Handle diameter: 12px
+- Handle offset: 8px from edge
+
+**Visual States:**
+
+- **Default:** Border `neutral-300`, background white (light) / `neutral-900` (dark)
+- **Valid:** Border `green-500` subtil, pas d'indicateur intrusif
+- **Invalid:** Border `red-500`, badge erreur top-right
+- **Warning:** Border `amber-500`, badge warning (FreeForm permanent)
+- **Selected:** Border `blue-600` épaisse (3px), shadow augmentée
+- **Hover:** Shadow légèrement augmentée (`shadow-md` → `shadow-lg`)
+
+**Tailwind Classes Pattern:**
+
+```tsx
+const nodeClasses = cn(
+  'w-[280px] min-h-[100px] rounded-lg p-3 bg-white dark:bg-neutral-900',
+  'border-2 transition-all duration-200',
+  validationState.status === 'valid' && 'border-green-500',
+  validationState.status === 'invalid' && 'border-red-500',
+  validationState.status === 'warning' && 'border-amber-500',
+  validationState.status === 'neutral' && 'border-neutral-300',
+  selected && 'border-blue-600 border-[3px] shadow-lg',
+  !selected && 'hover:shadow-lg'
+);
+```
+
+#### PropositionDisplay - Affichage Proposition
+
+**Responsabilité:** Afficher une proposition individuelle (prémisse ou conclusion) avec édition inline et handle de connexion.
+
+**Props Interface:**
+
+```typescript
+interface PropositionDisplayProps {
+  id: string;
+  content: string;
+  placeholder: string; // "P → Q" affiché si vide
+  isEmpty: boolean;
+  type: 'premise' | 'conclusion';
+  position: number;
+  isEditing: boolean;
+  isReadOnly?: boolean;
+  maxLength?: number; // Default: 200 chars
+  onDoubleClick: () => void;
+  onChange: (newContent: string) => void;
+  onBlur: () => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+}
+```
+
+**Visual Layout:**
+
+```
+Premise (input à gauche):
+○ "Si il pleut, le sol est mouillé"
+↑ Handle position absolute left
+
+Conclusion (output à droite):
+"Le sol est mouillé"                  ○
+                                       ↑ Handle position absolute right
+```
+
+**Typography Standards:**
+
+- Font: Inter, sans-serif
+- Size: 14px
+- Line height: 1.5
+- Placeholder: opacity 0.5, italic
+- Max visible lines: 3 (ellipsis avec tooltip au-delà)
+
+**Interaction Flow:**
+
+1. **Double-clic** → Mode édition (contentEditable ou textarea)
+2. **Enter** ou **Blur** → Sauvegarde
+3. **Escape** → Annuler édition
+4. **Validation:** Pas de validation format (free text), uniquement max length
+
+**Handle Positioning:**
+
+```tsx
+// Premise handle (left side)
+<Handle
+  type="target"
+  position={Position.Left}
+  id={`premise-${position}`}
+  className="w-3 h-3 !bg-blue-500 border-2 border-white"
+  style={{ top: 'calc(50%)' }}
+/>
+
+// Conclusion handle (right side)
+<Handle
+  type="source"
+  position={Position.Right}
+  id={`conclusion-${position}`}
+  className="w-3 h-3 !bg-green-500 border-2 border-white"
+  style={{ top: 'calc(50%)' }}
+/>
+```
+
+#### NodeTypeMenu - Menu Création
+
+**Responsabilité:** Menu contextuel catégorisé pour sélectionner le type de node à créer.
+
+**Props Interface:**
+
+```typescript
+interface NodeTypeMenuProps {
+  position: { x: number; y: number };
+  visible: boolean;
+  onSelect: (nodeType: NodeType, position: { x: number; y: number }) => void;
+  onClose: () => void;
+}
+
+interface NodeTypeCategory {
+  name: string;
+  label: string;
+  icon: string;
+  items: NodeTypeMenuItem[];
+}
+
+interface NodeTypeMenuItem {
+  type: NodeType;
+  label: string;
+  notation: string;
+  icon: string;
+  description: string;
+  category: 'foundational' | 'inference' | 'advanced' | 'special';
+}
+```
+
+**Menu Structure:**
+
+```
+┌──────────────────────────────────┐
+│ Create Logic Node                │
+├──────────────────────────────────┤
+│ ▼ FOUNDATIONAL                   │
+│   🔷 Axiom                   [A] │
+│   🔷 Simple Affirmation     [S] │
+├──────────────────────────────────┤
+│ ▼ INFERENCE                      │
+│   🔶 Modus Ponens        [P → Q]│
+│   🔶 Modus Tollens          [¬Q]│
+│   🔶 Syllogism          [A→B→C] │
+│   🔶 Disjunction          [P∨Q] │
+├──────────────────────────────────┤
+│ ▼ ADVANCED                       │
+│   🔺 Reductio ad Absurdum  [P→⊥]│
+│   🔺 Induction            [∀n P]│
+├──────────────────────────────────┤
+│ ▼ SPECIAL                        │
+│   ⚠️  Free Form           [Custom]│
+└──────────────────────────────────┘
+```
+
+**Dimensions:**
+
+- Width: 300px fixe
+- Item height: 36px
+- Max height: 500px (scrollable)
+- Shadow: `shadow-2xl` (elevation-3)
+- Border radius: 8px
+
+**Interaction Patterns:**
+
+- **Trigger:** Clic droit sur canvas → ouvre menu à position curseur
+- **Navigation:** Hover sur item → background highlight
+- **Selection:** Clic sur item → crée node, ferme menu
+- **Fermeture:** Clic outside, Escape key, ou après sélection
+- **Catégories:** Accordéon collapsible (optionnel pour MVP, toutes expanded par défaut)
+
+**Keyboard Navigation:**
+
+- **Arrow Up/Down:** Navigate items
+- **Enter:** Select highlighted item
+- **Escape:** Close menu
+- **Première lettre:** Jump to first item starting with that letter
+
+#### NodeValidationIndicator - Badge Validation
+
+**Responsabilité:** Indicateur visuel compact des erreurs de validation sur un node.
+
+**Props Interface:**
+
+```typescript
+interface NodeValidationIndicatorProps {
+  status: 'valid' | 'invalid' | 'warning' | 'neutral';
+  errors: string[];
+  position?: 'top-right' | 'top-left';
+  showTooltipOnHover?: boolean;
+}
+```
+
+**Visual States:**
+
+```
+Valid: Pas d'indicateur (discret) ou ✓ vert très subtil
+Invalid: ⚠️ badge rouge top-right
+Warning: ⚠️ badge orange top-right
+```
+
+**Tooltip Content (on hover):**
+
+```
+┌────────────────────────────────┐
+│ Validation Errors:             │
+│ • Premise 1 is empty           │
+│ • Type mismatch on connection  │
+│ • Expected implication (P→Q)   │
+└────────────────────────────────┘
+```
+
+**Implementation:**
+
+```tsx
+<div className="absolute top-2 right-2">
+  {status === 'invalid' && (
+    <Tooltip>
+      <TooltipTrigger>
+        <AlertTriangle className="w-5 h-5 text-red-500" />
+      </TooltipTrigger>
+      <TooltipContent>
+        <div className="text-sm">
+          <p className="font-semibold mb-1">Validation Errors:</p>
+          <ul className="list-disc list-inside space-y-1">
+            {errors.map((error, idx) => (
+              <li key={idx}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      </TooltipContent>
+    </Tooltip>
+  )}
+</div>
+```
+
+### Design System Integration
+
+#### Color Palette (Tailwind CSS)
+
+| Usage         | Tailwind Class | Hex Code  | Application                       |
+| ------------- | -------------- | --------- | --------------------------------- |
+| Primary       | `blue-600`     | `#2563EB` | Selection, focus, primary actions |
+| Success       | `green-500`    | `#10B981` | Valid connections, valid nodes    |
+| Warning       | `amber-500`    | `#F59E0B` | FreeForm nodes, cautions          |
+| Error         | `red-500`      | `#EF4444` | Invalid connections, errors       |
+| Neutral Light | `neutral-100`  | `#F1F5F9` | Background (light mode)           |
+| Neutral Dark  | `neutral-800`  | `#1E293B` | Background (dark mode)            |
+| Border Light  | `neutral-300`  | `#CBD5E1` | Borders, dividers (light)         |
+| Border Dark   | `neutral-600`  | `#475569` | Borders, dividers (dark)          |
+
+**Theme Adaptation:**
+
+- Light mode: Canvas `bg-neutral-100`, nodes `bg-white`
+- Dark mode: Canvas `bg-neutral-800`, nodes `bg-neutral-900`
+- Border colors adapt via `dark:` prefix
+
+#### Typography Scale
+
+```typescript
+// Tailwind config extension
+const typography = {
+  nodeLabel: 'text-sm font-semibold leading-tight', // 14px, 600 weight
+  notation: 'text-xs font-medium leading-tight', // 12px, 500 weight
+  proposition: 'text-sm font-normal leading-relaxed', // 14px, 400 weight
+  placeholder: 'text-sm font-normal italic opacity-50', // 14px, italic
+  tooltip: 'text-xs leading-snug', // 12px
+};
+```
+
+#### Icon Mapping by Node Type
+
+| Node Type            | Icon Component   | Lucide/Emoji | Color Category      |
+| -------------------- | ---------------- | ------------ | ------------------- |
+| Axiom                | `CircleDot`      | 🔷           | Blue (foundational) |
+| Simple Affirmation   | `MessageSquare`  | 🔷           | Blue (foundational) |
+| Modus Ponens         | `ArrowRight`     | 🔶           | Orange (inference)  |
+| Modus Tollens        | `ArrowLeftRight` | 🔶           | Orange (inference)  |
+| Syllogism            | `GitMerge`       | 🔶           | Orange (inference)  |
+| Disjunction          | `GitBranch`      | 🔶           | Orange (inference)  |
+| Reductio ad Absurdum | `AlertTriangle`  | 🔺           | Purple (advanced)   |
+| Induction            | `Repeat`         | 🔺           | Purple (advanced)   |
+| Free Form            | `Edit3`          | ⚠️           | Yellow (special)    |
+
+**Usage:** Utiliser émojis pour MVP (rapidité), migrer vers Lucide icons si besoin de cohérence cross-platform.
+
+### Interaction Patterns & User Flows
+
+#### Flow 1: Create and Configure a Logic Node
+
+**Trigger:** Right-click on canvas
+
+**Steps:**
+
+1. User right-clicks → `NodeTypeMenu` appears at cursor position
+2. User selects category (e.g., "Inference")
+3. User clicks "Modus Ponens" → Menu closes
+4. New `ModusPonensNode` created at click position
+5. Node displays with placeholder propositions: "P→Q", "P"
+6. User double-clicks first premise placeholder
+7. Inline editor opens (contentEditable or textarea)
+8. User types: "Si il pleut, sol mouillé"
+9. User presses Enter or clicks outside
+10. Proposition saved, editor closes
+11. User repeats for second premise
+12. Node ready for connections
+
+**Edge Cases:**
+
+- User clicks outside menu → Menu closes, no node created
+- User creates node but leaves propositions empty → Node shows placeholders, status neutral (not invalid)
+- Canvas zoomed → Menu scales appropriately
+
+#### Flow 2: Connect Two Nodes with Validation
+
+**Trigger:** Drag from output handle OR click-click mode
+
+**Steps (Drag & Drop mode):**
+
+1. User hovers over output handle → Handle scales 1.0 → 1.3
+2. User drags from output → Visual connection line follows cursor
+3. User hovers over target input handle
+4. Graph engine validates connection in real-time
+5. If valid → Input handle highlights green
+6. If invalid → Input handle highlights red, cursor shows "not-allowed"
+7. User releases mouse
+8. If valid → Connection created, line turns green
+9. If invalid → Error tooltip appears: "Type mismatch: Expected P→Q, got simple P"
+10. Validation propagates to all descendant nodes
+11. Invalid nodes show red border + validation indicator
+
+**Validation Rules:**
+
+- **Cycle detection:** graphlib detects cycles, connection rejected if cycle
+- **Type matching:** Proposition types must match (e.g., ModusPonens premise 1 expects ImplicationProposition)
+- **Multiple inputs:** Allowed (multiple premises can reference same proposition)
+- **Directional enforcement:** Cannot connect input→output or output→output
+
+#### Keyboard Navigation & Shortcuts
+
+**Global Canvas:**
+
+- **Space + Drag:** Pan canvas
+- **Mouse Wheel:** Zoom in/out
+- **Ctrl + Z:** Undo
+- **Ctrl + Y:** Redo
+- **Ctrl + S:** Save graph
+- **Delete / Backspace:** Delete selected node(s)
+
+**Node Selection:**
+
+- **Tab:** Navigate between nodes (focus order: creation order)
+- **Shift + Tab:** Navigate backward
+- **Arrow Keys:** Move selected node (10px increments)
+- **Shift + Arrow Keys:** Move selected node (1px increments)
+
+**Node Editing:**
+
+- **Double-click proposition:** Enter edit mode
+- **Enter:** Save and exit edit mode
+- **Escape:** Cancel edit, restore previous value
+- **Tab (in editor):** Move to next proposition field
+
+### Accessibility (WCAG 2.1 AA Compliance)
+
+#### Visual Accessibility
+
+**Color Contrast:**
+
+- Text on white background: Minimum 4.5:1 ratio
+- Large text (≥18px): Minimum 3:1 ratio
+- Validation does NOT rely solely on color:
+  - Invalid: Red border + ⚠️ icon + tooltip text
+  - Valid: Green border + ✓ icon (optional) + neutral state
+
+**Focus Indicators:**
+
+- All interactive elements have visible focus outline
+- Outline: 2px solid `blue-600`, offset 2px
+- Focus order: Logical (left to right, top to bottom)
+
+**Text Sizing:**
+
+- Support browser zoom up to 200% without loss of functionality
+- Fixed node width (280px) adapts with zoom
+- Text wraps appropriately
+
+#### Keyboard Accessibility
+
+**All functionality available via keyboard:**
+
+- Node creation: Keyboard shortcut to open menu (future: `Ctrl + N`)
+- Node selection: Tab navigation
+- Node editing: Enter to edit, Tab to navigate fields
+- Node deletion: Delete/Backspace keys
+- Connection creation: Future keyboard-based connection mode
+
+**Focus Management:**
+
+- Menu opened → Focus moves to first item
+- Node created → Focus moves to new node
+- Modal opened → Focus trapped in modal
+- Modal closed → Focus returns to trigger element
+
+#### Screen Reader Support
+
+**ARIA Labels:**
+
+```tsx
+// Node
+<div role="group" aria-label={`${label} node: ${notation}`}>
+
+// Handles
+<Handle
+  aria-label={`Input premise ${position}`}
+  role="button"
+  tabIndex={0}
+/>
+
+<Handle
+  aria-label={`Output conclusion ${position}`}
+  role="button"
+  tabIndex={0}
+/>
+
+// Validation indicator
+<div
+  role="alert"
+  aria-live="polite"
+  aria-atomic="true"
+>
+  {errors.map(error => <p key={error}>{error}</p>)}
+</div>
+```
+
+**Announcing Changes:**
+
+- Node validation state changes announced via `aria-live="polite"`
+- Connection success/failure announced
+- Graph saved announced
+
+**Touch Targets:**
+
+- Minimum 44x44px touch target for handles
+- Handle: 12px diameter + 16px padding = 44px effective target
+
+### Performance Optimization Strategies
+
+#### Component Performance
+
+**Memoization:**
+
+```tsx
+// All node components wrapped with React.memo
+export const ModusPonensNode = React.memo<NodeProps>(
+  (props) => {
+    // Only re-renders if props.data or props.selected change
+  },
+  (prevProps, nextProps) => {
+    return prevProps.data === nextProps.data && prevProps.selected === nextProps.selected;
+  }
+);
+```
+
+**Zustand Selective Subscriptions:**
+
+```tsx
+// Subscribe only to specific nodes, not entire graph
+const node = useGraphStore((state) => state.currentGraph?.nodes.find((n) => n.id === nodeId));
+```
+
+**Lazy Loading:**
+
+```tsx
+// Icons loaded dynamically
+const icons = {
+  ModusPonens: lazy(() => import('lucide-react').then((m) => ({ default: m.ArrowRight }))),
+  // ...
+};
+```
+
+#### Rendering Performance
+
+**React Flow Optimization:**
+
+- Viewport culling enabled (only render visible nodes)
+- Connection lines use optimized bezier curves
+- Fixed node dimensions prevent layout recalculations
+
+**Target Metrics:**
+
+- **Node render time:** < 16ms per node (60 FPS)
+- **Interaction response:** < 100ms (button click to visual feedback)
+- **Canvas pan/zoom:** 30+ FPS with 200 nodes
+- **Validation propagation:** < 50ms per connection check (debounced at 100ms)
+
+#### Animation Performance
+
+**GPU-Accelerated Properties:**
+
+- Only animate `transform`, `opacity`, `filter` (GPU-accelerated)
+- Avoid animating `width`, `height`, `top`, `left` (CPU-bound)
+
+**Animation Timings:**
+
+```css
+/* Prefer CSS transitions over JS animations */
+.node {
+  transition:
+    border-color 200ms ease,
+    transform 100ms ease-out,
+    box-shadow 200ms ease;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .node {
+    transition: none;
+  }
+}
+```
+
+**Key Animations:**
+
+| Interaction      | Property          | Duration | Easing                            | Notes                   |
+| ---------------- | ----------------- | -------- | --------------------------------- | ----------------------- |
+| Menu appear      | opacity, scale    | 150ms    | ease-out                          | Fade in + slight scale  |
+| Node creation    | scale             | 200ms    | cubic-bezier(0.34, 1.56, 0.64, 1) | Slight bounce           |
+| Connection line  | stroke-dashoffset | 300ms    | ease-in-out                       | Bezier drawing          |
+| Validation state | border-color      | 200ms    | ease                              | Smooth color transition |
+| Handle hover     | scale             | 100ms    | ease-out                          | 1.0 → 1.3               |
+| Error shake      | translateX        | 400ms    | ease-in-out                       | ±10px horizontal        |
+
+### Responsive Strategy (Desktop-Only MVP)
+
+**Minimum Requirements:**
+
+- Minimum screen width: **1280px**
+- Minimum screen height: **720px**
+- Target devices: Desktop/laptop only
+
+**Adaptation Strategy:**
+
+```tsx
+// Display warning on small screens
+{
+  screenWidth < 1280 && (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg max-w-md">
+        <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+        <h2 className="text-xl font-bold mb-2">Screen Too Small</h2>
+        <p>This application requires a minimum screen width of 1280px for optimal experience.</p>
+        <p className="text-sm text-neutral-600 mt-2">Current: {screenWidth}px</p>
+      </div>
+    </div>
+  );
+}
+```
+
+**Wide Screen Adaptation (>1920px):**
+
+- Canvas remains centered
+- Side panels (future: library, properties) utilize extra space
+- Max content width: 1600px
+
+**Note:** Mobile responsive design is explicitly out of scope for MVP (PRD NFR3).
+
+### Testing Strategy for UI Components
+
+#### Unit Tests (Jest + React Testing Library)
+
+**LogicNodeBase:**
+
+```typescript
+describe('LogicNodeBase', () => {
+  it('should render with correct validation state colors', () => {
+    const { container } = render(
+      <LogicNodeBase {...mockProps} validationState={{ status: 'invalid', errors: ['Test error'] }} />
+    );
+    expect(container.firstChild).toHaveClass('border-red-500');
+  });
+
+  it('should call onPropositionEdit when proposition is edited', () => {
+    const mockEdit = jest.fn();
+    const { getByText } = render(
+      <LogicNodeBase {...mockProps} onPropositionEdit={mockEdit} />
+    );
+    fireEvent.doubleClick(getByText('Premise 1'));
+    // ... test edit flow
+    expect(mockEdit).toHaveBeenCalledWith('prop-1', 'new content');
+  });
+});
+```
+
+**PropositionDisplay:**
+
+```typescript
+describe('PropositionDisplay', () => {
+  it('should show placeholder when empty', () => {
+    const { getByText } = render(
+      <PropositionDisplay isEmpty={true} placeholder="P → Q" {...mockProps} />
+    );
+    expect(getByText('P → Q')).toHaveClass('opacity-50', 'italic');
+  });
+
+  it('should enter edit mode on double-click', () => {
+    const mockDoubleClick = jest.fn();
+    const { getByText } = render(
+      <PropositionDisplay onDoubleClick={mockDoubleClick} {...mockProps} />
+    );
+    fireEvent.doubleClick(getByText('Test proposition'));
+    expect(mockDoubleClick).toHaveBeenCalled();
+  });
+});
+```
+
+#### Accessibility Tests (jest-axe)
+
+```typescript
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
+
+describe('Accessibility', () => {
+  it('LogicNodeBase should have no a11y violations', async () => {
+    const { container } = render(<LogicNodeBase {...mockProps} />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
+  it('NodeTypeMenu should have proper ARIA labels', () => {
+    const { getByRole } = render(<NodeTypeMenu visible={true} {...mockProps} />);
+    expect(getByRole('menu')).toHaveAttribute('aria-label', 'Create Logic Node');
+  });
+});
+```
+
+#### Integration Tests (Playwright E2E)
+
+```typescript
+test('should create and connect two nodes', async ({ page }) => {
+  await page.goto('/editor');
+
+  // Create first node
+  await page.click('canvas', { button: 'right', position: { x: 200, y: 200 } });
+  await page.click('text=Axiom');
+
+  // Create second node
+  await page.click('canvas', { button: 'right', position: { x: 500, y: 200 } });
+  await page.click('text=Modus Ponens');
+
+  // Edit proposition
+  await page.dblclick('.proposition:first-child');
+  await page.fill('textarea', 'Test proposition');
+  await page.press('textarea', 'Enter');
+
+  // Connect nodes
+  await page.hover('.handle-source');
+  await page.dragAndDrop('.handle-source', '.handle-target');
+
+  // Verify connection
+  await expect(page.locator('.react-flow__edge')).toBeVisible();
+});
+```
+
+#### Visual Regression Tests (Future)
+
+- Use Storybook + Chromatic for visual diffs
+- Test all node types in different states (valid, invalid, selected, hover)
+- Test responsive breakpoints
+- Test dark mode vs light mode
+
+### Error Messaging Guidelines
+
+**Structure:** Problem + Cause + Solution
+
+**Tone:** Helpful, educational, non-blaming
+
+**Examples:**
+
+❌ **Bad:** "Invalid connection"
+
+✅ **Good:** "Cannot connect: Modus Ponens requires an implication (P→Q) as first premise. Try connecting an implication node or Axiom with implication type instead."
+
+**Categories:**
+
+| Error Type        | Example Message                                                    | Visual Feedback        |
+| ----------------- | ------------------------------------------------------------------ | ---------------------- |
+| Empty premise     | "Premise 1 is empty. Double-click to add content."                 | Warning badge          |
+| Type mismatch     | "Expected implication (P→Q), but received simple proposition (P)." | Red handle, tooltip    |
+| Cycle detected    | "Cannot connect: Would create circular reasoning in the graph."    | Connection rejected    |
+| Contradiction     | "Axioms P and ¬P contradict each other."                           | Both nodes red border  |
+| Max nodes reached | "Maximum 200 nodes reached. Delete some nodes to add more."        | Create button disabled |
+
+**Implementation:**
+
+```tsx
+const ERROR_MESSAGES = {
+  EMPTY_PREMISE: (index: number) => `Premise ${index} is empty. Double-click to add content.`,
+  TYPE_MISMATCH: (expected: string, received: string) =>
+    `Expected ${expected}, but received ${received}.`,
+  CYCLE_DETECTED: () => 'Cannot connect: Would create circular reasoning in the graph.',
+  // ...
+};
+```
+
+### Implementation Roadmap for UI Components
+
+**Phase 1: Core Components (Story 2.5-2.6)**
+
+- [ ] `LogicNodeBase` with all visual states
+- [ ] `PropositionDisplay` with inline editing
+- [ ] `NodeValidationIndicator` with tooltip
+- [ ] Storybook stories for all components
+
+**Phase 2: Node Type Implementations (Story 2.7)**
+
+- [ ] `AxiomNode` using LogicNodeBase
+- [ ] `ModusPonensNode` using LogicNodeBase
+- [ ] All 9 node types implemented
+- [ ] Integration with graph-engine validation
+
+**Phase 3: Creation & Interaction (Story 3.6)**
+
+- [ ] `NodeTypeMenu` with categories
+- [ ] Right-click canvas trigger
+- [ ] Connection validation UI feedback
+- [ ] Keyboard navigation
+
+**Phase 4: Polish & Accessibility (Story 3.7)**
+
+- [ ] ARIA labels on all interactive elements
+- [ ] Keyboard shortcuts
+- [ ] Focus management
+- [ ] Screen reader announcements
+- [ ] Accessibility audit with jest-axe
+
+---
+
+## 10. Backend Architecture
+
+### API Route Organization
+
+```
+apps/web/app/api/
+├── auth/
+│   └── [...nextauth]/route.ts
+├── graphs/
+│   ├── route.ts              # GET/POST
+│   └── [id]/
+│       ├── route.ts          # GET/PATCH/DELETE
+│       ├── clone/route.ts
+│       └── validate/route.ts
+├── users/me/route.ts
+├── library/
+│   ├── featured/route.ts
+│   └── categories/route.ts
+└── health/route.ts
+```
+
+### Repository Pattern
+
+**GraphRepository:**
+
+```typescript
+export class GraphRepository {
+  static async findById(graphId, userId?);
+  static async findByOwner(userId, options);
+  static async findPublic(filters, options);
+  static async create(data, ownerId, ownerName);
+  static async update(graphId, updates, userId);
+  static async delete(graphId, userId);
+  static async clone(sourceGraphId, newOwnerId, newOwnerName);
+  static async countByOwner(userId);
+}
+```
+
+**UserRepository:**
+
+```typescript
+export class UserRepository {
+  static async findByEmail(email);
+  static async findById(userId);
+  static async create(data);
+  static async verifyPassword(email, password);
+  static async updatePreferences(userId, preferences);
+}
+```
+
+### Authentication (NextAuth.js)
+
+```typescript
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      async authorize(credentials) {
+        const user = await UserRepository.verifyPassword(credentials.email, credentials.password);
+        return user;
+      },
+    }),
+  ],
+  session: { strategy: 'jwt', maxAge: 7 * 24 * 60 * 60 },
+  secret: process.env.NEXTAUTH_SECRET,
+};
+```
+
+**Auth Middleware:**
+
+```typescript
+export function withAuth(handler: AuthenticatedHandler) {
+  return async (request, context) => {
+    const token = await getToken({ req: request });
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    return handler(request, { ...context, user: token });
+  };
+}
+```
+
+### Caching (Vercel KV)
+
+```typescript
+export class CacheService {
+  static async getCached<T>(key): Promise<T | null>;
+  static async setCached<T>(key, value, ttl): Promise<void>;
+  static async invalidate(key): Promise<void>;
+}
+```
+
+**Cache Strategy:**
+
+- Graphes publics: TTL 5min
+- Library featured: TTL 1h
+- Graceful degradation si Redis down
+
+---
+
+## 11. Unified Project Structure
+
+```
+reasoning-graph/
+├── .github/workflows/        # CI/CD
+├── apps/
+│   └── web/                  # Next.js App
+│       ├── app/              # App Router (pages + API)
+│       ├── components/
+│       ├── lib/
+│       ├── repositories/
+│       ├── models/
+│       ├── services/
+│       ├── stores/
+│       ├── hooks/
+│       └── package.json
+├── packages/
+│   ├── graph-engine/         # Validation logique
+│   │   ├── src/
+│   │   │   ├── nodes/
+│   │   │   ├── propositions/
+│   │   │   ├── validation/
+│   │   │   └── layout/
+│   │   └── package.json
+│   ├── ui-components/        # Composants React
+│   └── types/                # Types partagés
+├── scripts/
+├── docs/
+├── package.json              # Root workspace
+└── README.md
+```
+
+---
+
+## 12. Development Workflow
+
+### Local Setup
+
+```bash
+# Installation
+npm install
+
+# Configuration
+cp .env.example .env.local
+# Éditer .env.local avec MongoDB URI et secrets
+
+# Démarrage
+npm run dev                  # Dev server (port 3000)
+npm test                     # Tests
+npm run lint                 # Linting
+npm run type-check           # TypeScript
+npm run build                # Build production
+```
+
+### Environment Variables
+
+```bash
+# .env.local
+MONGODB_URI=mongodb+srv://...
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=<secret>
+KV_URL=<vercel-kv-url>
+NODE_ENV=development
+```
+
+---
+
+## 13. Deployment Architecture
+
+### Deployment Strategy
+
+**Frontend:** Vercel (auto-deploy sur push)  
+**Backend:** Vercel Functions (serverless)  
+**Database:** MongoDB Atlas M0  
+**Cache:** Vercel KV (Redis)
+
+### CI/CD Pipeline
+
+```yaml
+# .github/workflows/ci.yml
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run type-check
+      - run: npm run test:coverage
+      - run: npm run build
+```
+
+### Environments
+
+| Environment | URL                        | Branch     | Purpose    |
+| ----------- | -------------------------- | ---------- | ---------- |
+| Development | localhost:3000             | -          | Local dev  |
+| Preview     | `*.vercel.app`             | feature/\* | PR testing |
+| Production  | reasoning-graph.vercel.app | main       | Live       |
+
+---
+
+## 14. Security and Performance
+
+### Security
+
+**Frontend:**
+
+- CSP Headers
+- XSS Prevention (React escaping)
+- Secure Storage (httpOnly cookies)
+
+**Backend:**
+
+- Input Validation (Zod)
+- Rate Limiting (100 req/min)
+- CORS Policy (whitelist)
+
+**Authentication:**
+
+- JWT httpOnly cookies
+- Session 7 jours
+- Bcrypt password hash (10 rounds)
+
+### Performance
+
+**Frontend:**
+
+- Bundle target: <300KB gzipped
+- React lazy() pour code splitting
+- Zustand selective subscriptions
+- React.memo sur NodeRenderer
+
+**Backend:**
+
+- Response time: P95 <500ms
+- MongoDB indexes sur queries fréquentes
+- Connection pooling (2-10 connexions)
+- Redis cache (graphes publics 5min TTL)
+
+**Monitoring:**
+
+- Vercel Analytics (Core Web Vitals)
+- Sentry (error tracking, 5k events/mois)
+- Vercel Logs (tail en temps réel)
+
+---
+
+## 11. Development Guidelines
+
+### Code Documentation Standards
+
+**JSDoc for Public APIs:**
+
+- All exported functions, classes, and interfaces MUST have JSDoc comments
+- Include @param, @returns, @throws, @example when applicable
+- Example:
+
+```typescript
+/**
+ * Validates a logic node and its connections
+ * @param node - The logic node to validate
+ * @param edges - All edges in the graph
+ * @returns Validation result with errors if any
+ * @throws ValidationError if node structure is invalid
+ */
+export function validateNode(node: LogicNode, edges: Edge[]): ValidationResult;
+```
+
+**Inline Comments for Complex Logic:**
+
+- Graph engine algorithms MUST have step-by-step comments
+- Validation rules MUST explain the logic being validated
+- Performance-critical sections MUST document optimization rationale
+
+**Naming Conventions:**
+
+- Components: PascalCase (e.g., `NodeRenderer`, `GraphCanvas`)
+- Functions/variables: camelCase (e.g., `validateGraph`, `isConnecting`)
+- Constants: UPPER_SNAKE_CASE (e.g., `MAX_NODES`, `DEFAULT_ZOOM`)
+- Types/Interfaces: PascalCase with descriptive names (e.g., `ValidationResult`, `PropositionType`)
+- File names: kebab-case for components (e.g., `node-renderer.tsx`), camelCase for utilities
+
+**TypeScript Standards:**
+
+- Strict mode enabled (no any, implicit any, null checks)
+- Prefer interfaces over types for object shapes
+- Use discriminated unions for polymorphic data (e.g., LogicNode)
+- Export types alongside implementation
+
+### Error Message Guidelines
+
+**Structure:** Problem + Cause + Solution
+
+**Tone:** Helpful and non-blaming
+
+**Examples:**
+
+- ❌ Bad: "Invalid connection"
+- ✅ Good: "Cannot connect: Modus Ponens requires an implication (P→Q) as first premise. Try connecting an implication node instead."
+
+**Categories:**
+
+- Validation errors: Explain logic rule violated
+- Network errors: Suggest retry or check connection
+- User input errors: Guide toward correct format
+
+### Form Validation Patterns
+
+**Client-Side:**
+
+- Use Zod schemas for all forms
+- Real-time validation on blur (not on every keystroke)
+- Display errors below field with red text and icon
+- Disable submit button if form invalid
+
+**Server-Side:**
+
+- ALWAYS revalidate with same Zod schemas
+- Return structured error responses: `{ field: string, message: string }[]`
+- Log validation failures for security monitoring
+
+### Testing Standards
+
+**Unit Tests (80%+ coverage for graph-engine):**
+
+- Test files colocated: `node-validator.ts` → `node-validator.test.ts`
+- Use descriptive test names: `describe("validateModusPonens") { it("should fail when first premise is not an implication") }`
+- Mock external dependencies (MongoDB, APIs)
+- Use MongoDB Memory Server for database tests
+
+**Integration Tests:**
+
+- Test API endpoints with supertest
+- Test critical user flows end-to-end
+- Use test database (not production!)
+
+**E2E Tests (Playwright):**
+
+- Focus on critical paths: auth, create graph, save graph, load graph
+- Run in CI pipeline on every PR
+- Use data-testid attributes for stable selectors
+
+### Git Workflow
+
+**Branches:**
+
+- main: production-ready code
+- develop: integration branch (optional for larger teams)
+- feature/story-X-Y: feature branches (e.g., feature/story-2-1-propositions)
+
+**Commits:**
+
+- Conventional commits: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`
+- Reference story: `feat(story-3.2): implement validation engine`
+- Keep commits atomic and focused
+
+**Pull Requests:**
+
+- Title: `Story X.Y: Brief description`
+- Description: Link to story, summary of changes, testing done
+- Require 1 approval before merge
+- CI must pass (tests, linting, build)
+
+---
+
+## Conclusion
+
+Cette architecture full-stack Next.js avec MongoDB offre:
+
+✅ **Simplicité:** Monorepo TypeScript unifié, un seul déploiement  
+✅ **Performance:** Validation client temps réel, cache Redis, serverless auto-scaling  
+✅ **Coût:** Tiers gratuits (Vercel, MongoDB Atlas M0, Vercel KV)  
+✅ **Scalabilité:** Architecture serverless, horizontal scaling automatique  
+✅ **Maintenabilité:** Repository pattern, types partagés, tests 80%+ coverage  
+✅ **Sécurité:** Double validation (client+serveur), JWT, rate limiting
+
+Prêt pour développement MVP avec path clair vers features Phase 2 (collaboration temps réel, mobile, exports).
+
+---
+
+**Document généré par Winston (Architect) - 15 janvier 2026**
