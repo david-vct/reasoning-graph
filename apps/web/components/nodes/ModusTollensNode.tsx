@@ -11,6 +11,7 @@ import { NodeProps } from 'reactflow';
 import { ArrowLeftRight } from 'lucide-react';
 import { LogicNodeWrapper } from './LogicNodeWrapper';
 import { PropositionDisplay } from './PropositionDisplay';
+import { useGraphStore } from '@/lib/store/graphStore';
 
 export interface ModusTollensNodeData {
   label?: string;
@@ -32,7 +33,13 @@ export interface ModusTollensNodeData {
 /**
  * ModusTollensNode - deductive inference by contrapositive
  */
-export const ModusTollensNode: React.FC<NodeProps<ModusTollensNodeData>> = ({ data, selected }) => {
+export const ModusTollensNode: React.FC<NodeProps<ModusTollensNodeData>> = ({
+  id,
+  data,
+  selected,
+}) => {
+  const updateProposition = useGraphStore((state) => state.updateProposition);
+
   const validationState = data.validationState || {
     isValid: true,
     status: 'neutral',
@@ -47,6 +54,7 @@ export const ModusTollensNode: React.FC<NodeProps<ModusTollensNodeData>> = ({ da
       placeholder="P→Q"
       isEmpty={!data.premises.implication.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.implication.id, newContent)}
     />,
     <PropositionDisplay
       key={data.premises.negation.id}
@@ -55,6 +63,7 @@ export const ModusTollensNode: React.FC<NodeProps<ModusTollensNodeData>> = ({ da
       placeholder="¬Q"
       isEmpty={!data.premises.negation.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.negation.id, newContent)}
     />,
   ];
 
@@ -66,6 +75,7 @@ export const ModusTollensNode: React.FC<NodeProps<ModusTollensNodeData>> = ({ da
       placeholder="¬P"
       isEmpty={!data.conclusion.content}
       type="conclusion"
+      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
     />,
   ];
 

@@ -11,6 +11,7 @@ import { NodeProps } from 'reactflow';
 import { ArrowRight } from 'lucide-react';
 import { LogicNodeWrapper } from './LogicNodeWrapper';
 import { PropositionDisplay } from './PropositionDisplay';
+import { useGraphStore } from '@/lib/store/graphStore';
 
 export interface ModusPonensNodeData {
   label?: string;
@@ -32,7 +33,13 @@ export interface ModusPonensNodeData {
 /**
  * ModusPonensNode - deductive inference rule
  */
-export const ModusPonensNode: React.FC<NodeProps<ModusPonensNodeData>> = ({ data, selected }) => {
+export const ModusPonensNode: React.FC<NodeProps<ModusPonensNodeData>> = ({
+  id,
+  data,
+  selected,
+}) => {
+  const updateProposition = useGraphStore((state) => state.updateProposition);
+
   const validationState = data.validationState || {
     isValid: true,
     status: 'neutral',
@@ -47,6 +54,7 @@ export const ModusPonensNode: React.FC<NodeProps<ModusPonensNodeData>> = ({ data
       placeholder="P→Q"
       isEmpty={!data.premises.implication.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.implication.id, newContent)}
     />,
     <PropositionDisplay
       key={data.premises.affirmation.id}
@@ -55,6 +63,7 @@ export const ModusPonensNode: React.FC<NodeProps<ModusPonensNodeData>> = ({ data
       placeholder="P"
       isEmpty={!data.premises.affirmation.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.affirmation.id, newContent)}
     />,
   ];
 
@@ -66,6 +75,7 @@ export const ModusPonensNode: React.FC<NodeProps<ModusPonensNodeData>> = ({ data
       placeholder="Q"
       isEmpty={!data.conclusion.content}
       type="conclusion"
+      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
     />,
   ];
 

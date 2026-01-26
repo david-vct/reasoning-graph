@@ -11,6 +11,7 @@ import { NodeProps } from 'reactflow';
 import { Repeat } from 'lucide-react';
 import { LogicNodeWrapper } from './LogicNodeWrapper';
 import { PropositionDisplay } from './PropositionDisplay';
+import { useGraphStore } from '@/lib/store/graphStore';
 
 export interface InductionNodeData {
   label?: string;
@@ -32,7 +33,9 @@ export interface InductionNodeData {
 /**
  * InductionNode - mathematical induction reasoning
  */
-export const InductionNode: React.FC<NodeProps<InductionNodeData>> = ({ data, selected }) => {
+export const InductionNode: React.FC<NodeProps<InductionNodeData>> = ({ id, data, selected }) => {
+  const updateProposition = useGraphStore((state) => state.updateProposition);
+
   const validationState = data.validationState || {
     isValid: true,
     status: 'neutral',
@@ -47,6 +50,7 @@ export const InductionNode: React.FC<NodeProps<InductionNodeData>> = ({ data, se
       placeholder="Base Case: P(0)"
       isEmpty={!data.premises.baseCase.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.baseCase.id, newContent)}
     />,
     <PropositionDisplay
       key={data.premises.inductiveStep.id}
@@ -55,6 +59,7 @@ export const InductionNode: React.FC<NodeProps<InductionNodeData>> = ({ data, se
       placeholder="Inductive: P(n)→P(n+1)"
       isEmpty={!data.premises.inductiveStep.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.inductiveStep.id, newContent)}
     />,
   ];
 
@@ -66,6 +71,7 @@ export const InductionNode: React.FC<NodeProps<InductionNodeData>> = ({ data, se
       placeholder="∀n: P(n)"
       isEmpty={!data.conclusion.content}
       type="conclusion"
+      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
     />,
   ];
 

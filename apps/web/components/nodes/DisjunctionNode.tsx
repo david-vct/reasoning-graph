@@ -11,6 +11,7 @@ import { NodeProps } from 'reactflow';
 import { GitBranch } from 'lucide-react';
 import { LogicNodeWrapper } from './LogicNodeWrapper';
 import { PropositionDisplay } from './PropositionDisplay';
+import { useGraphStore } from '@/lib/store/graphStore';
 
 export interface DisjunctionNodeData {
   label?: string;
@@ -32,7 +33,13 @@ export interface DisjunctionNodeData {
 /**
  * DisjunctionNode - disjunctive syllogism reasoning
  */
-export const DisjunctionNode: React.FC<NodeProps<DisjunctionNodeData>> = ({ data, selected }) => {
+export const DisjunctionNode: React.FC<NodeProps<DisjunctionNodeData>> = ({
+  id,
+  data,
+  selected,
+}) => {
+  const updateProposition = useGraphStore((state) => state.updateProposition);
+
   const validationState = data.validationState || {
     isValid: true,
     status: 'neutral',
@@ -47,6 +54,7 @@ export const DisjunctionNode: React.FC<NodeProps<DisjunctionNodeData>> = ({ data
       placeholder="P∨Q"
       isEmpty={!data.premises.disjunction.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.disjunction.id, newContent)}
     />,
     <PropositionDisplay
       key={data.premises.negation.id}
@@ -55,6 +63,7 @@ export const DisjunctionNode: React.FC<NodeProps<DisjunctionNodeData>> = ({ data
       placeholder="¬P"
       isEmpty={!data.premises.negation.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.negation.id, newContent)}
     />,
   ];
 
@@ -66,6 +75,7 @@ export const DisjunctionNode: React.FC<NodeProps<DisjunctionNodeData>> = ({ data
       placeholder="Q"
       isEmpty={!data.conclusion.content}
       type="conclusion"
+      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
     />,
   ];
 

@@ -11,6 +11,7 @@ import { NodeProps } from 'reactflow';
 import { CircleDot } from 'lucide-react';
 import { LogicNodeWrapper } from './LogicNodeWrapper';
 import { PropositionDisplay } from './PropositionDisplay';
+import { useGraphStore } from '@/lib/store/graphStore';
 
 export interface AxiomNodeData {
   label?: string;
@@ -28,7 +29,9 @@ export interface AxiomNodeData {
 /**
  * AxiomNode - foundational truth with no premises
  */
-export const AxiomNode: React.FC<NodeProps<AxiomNodeData>> = ({ data, selected }) => {
+export const AxiomNode: React.FC<NodeProps<AxiomNodeData>> = ({ id, data, selected }) => {
+  const updateProposition = useGraphStore((state) => state.updateProposition);
+
   const validationState = data.validationState || {
     isValid: true,
     status: 'neutral',
@@ -43,6 +46,7 @@ export const AxiomNode: React.FC<NodeProps<AxiomNodeData>> = ({ data, selected }
       placeholder="Axiom"
       isEmpty={!data.conclusion.content}
       type="conclusion"
+      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
     />,
   ];
 

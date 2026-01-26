@@ -18,6 +18,17 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <ReactFlowProvider>{children}</ReactFlowProvider>
 );
 
+// Mock props for React Flow nodes
+const mockNodeProps = {
+  selected: false,
+  isConnectable: true,
+  zIndex: 0,
+  xPos: 0,
+  yPos: 0,
+  dragging: false,
+  dragHandle: undefined,
+};
+
 describe('AxiomNode', () => {
   it('renders with formal notation "Axiom"', () => {
     const mockData = {
@@ -26,7 +37,7 @@ describe('AxiomNode', () => {
 
     render(
       <TestWrapper>
-        <AxiomNode data={mockData} id="node-1" type="axiom" />
+        <AxiomNode {...mockNodeProps} data={mockData} id="node-1" type="axiom" />
       </TestWrapper>
     );
 
@@ -41,7 +52,7 @@ describe('AxiomNode', () => {
 
     render(
       <TestWrapper>
-        <AxiomNode data={mockData} id="node-1" type="axiom" />
+        <AxiomNode {...mockNodeProps} data={mockData} id="node-1" type="axiom" />
       </TestWrapper>
     );
 
@@ -56,7 +67,7 @@ describe('AxiomNode', () => {
 
     const { container } = render(
       <TestWrapper>
-        <AxiomNode data={mockData} id="node-1" type="axiom" />
+        <AxiomNode {...mockNodeProps} data={mockData} id="node-1" type="axiom" />
       </TestWrapper>
     );
 
@@ -72,7 +83,7 @@ describe('AxiomNode', () => {
 
     const { container } = render(
       <TestWrapper>
-        <AxiomNode data={mockData} id="node-1" type="axiom" />
+        <AxiomNode {...mockNodeProps} data={mockData} id="node-1" type="axiom" />
       </TestWrapper>
     );
 
@@ -94,7 +105,7 @@ describe('ModusPonensNode', () => {
 
     render(
       <TestWrapper>
-        <ModusPonensNode data={mockData} id="node-1" type="modus-ponens" />
+        <ModusPonensNode {...mockNodeProps} data={mockData} id="node-1" type="modus-ponens" />
       </TestWrapper>
     );
 
@@ -112,7 +123,7 @@ describe('ModusPonensNode', () => {
 
     render(
       <TestWrapper>
-        <ModusPonensNode data={mockData} id="node-1" type="modus-ponens" />
+        <ModusPonensNode {...mockNodeProps} data={mockData} id="node-1" type="modus-ponens" />
       </TestWrapper>
     );
 
@@ -132,7 +143,7 @@ describe('ModusPonensNode', () => {
 
     const { container } = render(
       <TestWrapper>
-        <ModusPonensNode data={mockData} id="node-1" type="modus-ponens" />
+        <ModusPonensNode {...mockNodeProps} data={mockData} id="node-1" type="modus-ponens" />
       </TestWrapper>
     );
 
@@ -151,7 +162,7 @@ describe('ModusPonensNode', () => {
 
     const { container } = render(
       <TestWrapper>
-        <ModusPonensNode data={mockData} id="node-1" type="modus-ponens" />
+        <ModusPonensNode {...mockNodeProps} data={mockData} id="node-1" type="modus-ponens" />
       </TestWrapper>
     );
 
@@ -172,7 +183,7 @@ describe('ModusTollensNode', () => {
 
     render(
       <TestWrapper>
-        <ModusTollensNode data={mockData} id="node-1" type="modus-tollens" />
+        <ModusTollensNode {...mockNodeProps} data={mockData} id="node-1" type="modus-tollens" />
       </TestWrapper>
     );
 
@@ -190,7 +201,7 @@ describe('ModusTollensNode', () => {
 
     render(
       <TestWrapper>
-        <ModusTollensNode data={mockData} id="node-1" type="modus-tollens" />
+        <ModusTollensNode {...mockNodeProps} data={mockData} id="node-1" type="modus-tollens" />
       </TestWrapper>
     );
 
@@ -211,7 +222,7 @@ describe('SyllogismNode', () => {
 
     render(
       <TestWrapper>
-        <SyllogismNode data={mockData} id="node-1" type="syllogism" />
+        <SyllogismNode {...mockNodeProps} data={mockData} id="node-1" type="syllogism" />
       </TestWrapper>
     );
 
@@ -229,7 +240,7 @@ describe('SyllogismNode', () => {
 
     render(
       <TestWrapper>
-        <SyllogismNode data={mockData} id="node-1" type="syllogism" />
+        <SyllogismNode {...mockNodeProps} data={mockData} id="node-1" type="syllogism" />
       </TestWrapper>
     );
 
@@ -250,7 +261,7 @@ describe('DisjunctionNode', () => {
 
     render(
       <TestWrapper>
-        <DisjunctionNode data={mockData} id="node-1" type="disjunction" />
+        <DisjunctionNode {...mockNodeProps} data={mockData} id="node-1" type="disjunction" />
       </TestWrapper>
     );
 
@@ -268,7 +279,7 @@ describe('DisjunctionNode', () => {
 
     render(
       <TestWrapper>
-        <DisjunctionNode data={mockData} id="node-1" type="disjunction" />
+        <DisjunctionNode {...mockNodeProps} data={mockData} id="node-1" type="disjunction" />
       </TestWrapper>
     );
 
@@ -285,7 +296,7 @@ describe('FreeFormNode', () => {
 
     render(
       <TestWrapper>
-        <FreeFormNode data={mockData} id="node-1" type="free-form" />
+        <FreeFormNode {...mockNodeProps} data={mockData} id="node-1" type="free-form" />
       </TestWrapper>
     );
 
@@ -304,11 +315,13 @@ describe('FreeFormNode', () => {
 
     const { container } = render(
       <TestWrapper>
-        <FreeFormNode data={mockData} id="node-1" type="free-form" />
+        <FreeFormNode {...mockNodeProps} data={mockData} id="node-1" type="free-form" />
       </TestWrapper>
     );
 
     const inputHandles = container.querySelectorAll('[data-handlepos="left"]');
+    // 3 premises + 1 "Add Premise" button (button doesn't have handle but is in list)
+    // Only the PropositionDisplay components should have handles, not the button
     expect(inputHandles.length).toBe(3);
   });
 
@@ -323,7 +336,7 @@ describe('FreeFormNode', () => {
 
     const { container } = render(
       <TestWrapper>
-        <FreeFormNode data={mockData} id="node-1" type="free-form" />
+        <FreeFormNode {...mockNodeProps} data={mockData} id="node-1" type="free-form" />
       </TestWrapper>
     );
 
@@ -339,7 +352,7 @@ describe('FreeFormNode', () => {
 
     const { container } = render(
       <TestWrapper>
-        <FreeFormNode data={mockData} id="node-1" type="free-form" />
+        <FreeFormNode {...mockNodeProps} data={mockData} id="node-1" type="free-form" />
       </TestWrapper>
     );
 
@@ -359,7 +372,12 @@ describe('SimpleAffirmationNode', () => {
 
     render(
       <TestWrapper>
-        <SimpleAffirmationNode data={mockData} id="node-1" type="simple-affirmation" />
+        <SimpleAffirmationNode
+          {...mockNodeProps}
+          data={mockData}
+          id="node-1"
+          type="simple-affirmation"
+        />
       </TestWrapper>
     );
 
@@ -377,7 +395,12 @@ describe('ReductioAdAbsurdumNode', () => {
 
     render(
       <TestWrapper>
-        <ReductioAdAbsurdumNode data={mockData} id="node-1" type="reductio-ad-absurdum" />
+        <ReductioAdAbsurdumNode
+          {...mockNodeProps}
+          data={mockData}
+          id="node-1"
+          type="reductio-ad-absurdum"
+        />
       </TestWrapper>
     );
 
@@ -400,7 +423,7 @@ describe('InductionNode', () => {
 
     render(
       <TestWrapper>
-        <InductionNode data={mockData} id="node-1" type="induction" />
+        <InductionNode {...mockNodeProps} data={mockData} id="node-1" type="induction" />
       </TestWrapper>
     );
 

@@ -58,7 +58,12 @@ function GraphCanvasInner() {
   // Handle keyboard events for delete
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedNodeId) {
+      // Don't delete if user is typing in an input or textarea
+      const activeElement = document.activeElement;
+      const isTyping =
+        activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement;
+
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedNodeId && !isTyping) {
         event.preventDefault();
         deleteSelectedNode();
       }

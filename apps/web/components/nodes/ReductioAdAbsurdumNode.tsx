@@ -11,6 +11,7 @@ import { NodeProps } from 'reactflow';
 import { AlertTriangle } from 'lucide-react';
 import { LogicNodeWrapper } from './LogicNodeWrapper';
 import { PropositionDisplay } from './PropositionDisplay';
+import { useGraphStore } from '@/lib/store/graphStore';
 
 export interface ReductioAdAbsurdumNodeData {
   label?: string;
@@ -33,9 +34,12 @@ export interface ReductioAdAbsurdumNodeData {
  * ReductioAdAbsurdumNode - proof by contradiction
  */
 export const ReductioAdAbsurdumNode: React.FC<NodeProps<ReductioAdAbsurdumNodeData>> = ({
+  id,
   data,
   selected,
 }) => {
+  const updateProposition = useGraphStore((state) => state.updateProposition);
+
   const validationState = data.validationState || {
     isValid: true,
     status: 'neutral',
@@ -50,6 +54,7 @@ export const ReductioAdAbsurdumNode: React.FC<NodeProps<ReductioAdAbsurdumNodeDa
       placeholder="P→⊥"
       isEmpty={!data.premise.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premise.id, newContent)}
     />,
   ];
 
@@ -61,6 +66,7 @@ export const ReductioAdAbsurdumNode: React.FC<NodeProps<ReductioAdAbsurdumNodeDa
       placeholder="¬P"
       isEmpty={!data.conclusion.content}
       type="conclusion"
+      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
     />,
   ];
 

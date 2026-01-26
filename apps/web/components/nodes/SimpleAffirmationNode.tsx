@@ -11,6 +11,7 @@ import { NodeProps } from 'reactflow';
 import { MessageSquare } from 'lucide-react';
 import { LogicNodeWrapper } from './LogicNodeWrapper';
 import { PropositionDisplay } from './PropositionDisplay';
+import { useGraphStore } from '@/lib/store/graphStore';
 
 export interface SimpleAffirmationNodeData {
   label?: string;
@@ -33,9 +34,12 @@ export interface SimpleAffirmationNodeData {
  * SimpleAffirmationNode - simple statement with optional justification
  */
 export const SimpleAffirmationNode: React.FC<NodeProps<SimpleAffirmationNodeData>> = ({
+  id,
   data,
   selected,
 }) => {
+  const updateProposition = useGraphStore((state) => state.updateProposition);
+
   const validationState = data.validationState || {
     isValid: true,
     status: 'neutral',
@@ -51,6 +55,7 @@ export const SimpleAffirmationNode: React.FC<NodeProps<SimpleAffirmationNodeData
           placeholder="Justification"
           isEmpty={!data.premise.content}
           type="premise"
+          onSave={(newContent) => updateProposition(id, data.premise!.id, newContent)}
         />,
       ]
     : [];
@@ -63,6 +68,7 @@ export const SimpleAffirmationNode: React.FC<NodeProps<SimpleAffirmationNodeData
       placeholder="⊢"
       isEmpty={!data.conclusion.content}
       type="conclusion"
+      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
     />,
   ];
 

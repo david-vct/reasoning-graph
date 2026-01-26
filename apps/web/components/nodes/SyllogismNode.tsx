@@ -11,6 +11,7 @@ import { NodeProps } from 'reactflow';
 import { GitMerge } from 'lucide-react';
 import { LogicNodeWrapper } from './LogicNodeWrapper';
 import { PropositionDisplay } from './PropositionDisplay';
+import { useGraphStore } from '@/lib/store/graphStore';
 
 export interface SyllogismNodeData {
   label?: string;
@@ -32,7 +33,9 @@ export interface SyllogismNodeData {
 /**
  * SyllogismNode - classical syllogistic reasoning
  */
-export const SyllogismNode: React.FC<NodeProps<SyllogismNodeData>> = ({ data, selected }) => {
+export const SyllogismNode: React.FC<NodeProps<SyllogismNodeData>> = ({ id, data, selected }) => {
+  const updateProposition = useGraphStore((state) => state.updateProposition);
+
   const validationState = data.validationState || {
     isValid: true,
     status: 'neutral',
@@ -47,6 +50,7 @@ export const SyllogismNode: React.FC<NodeProps<SyllogismNodeData>> = ({ data, se
       placeholder="Major Premise"
       isEmpty={!data.premises.major.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.major.id, newContent)}
     />,
     <PropositionDisplay
       key={data.premises.minor.id}
@@ -55,6 +59,7 @@ export const SyllogismNode: React.FC<NodeProps<SyllogismNodeData>> = ({ data, se
       placeholder="Minor Premise"
       isEmpty={!data.premises.minor.content}
       type="premise"
+      onSave={(newContent) => updateProposition(id, data.premises.minor.id, newContent)}
     />,
   ];
 
@@ -66,6 +71,7 @@ export const SyllogismNode: React.FC<NodeProps<SyllogismNodeData>> = ({ data, se
       placeholder="Conclusion"
       isEmpty={!data.conclusion.content}
       type="conclusion"
+      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
     />,
   ];
 
