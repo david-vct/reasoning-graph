@@ -6,6 +6,7 @@ node_modules/
 dist/
 build/
 coverage/
+coverage-nodes/
 
 # Test outputs
 playwright-report/
