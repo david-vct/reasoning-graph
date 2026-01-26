@@ -8,3 +8,6 @@ export const graphEngine = {
 
 // Export proposition system
 export * from './propositions';
+
+// Export node system
+export * from './nodes';

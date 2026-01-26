@@ -96,6 +96,8 @@ nodeTypeRegistry.register({
   inputCount: 0,
   outputCount: 1,
   category: 'foundational',
+  icon: '🔸',
+  notation: 'Hypothesis',
 });
 
 nodeTypeRegistry.register({
@@ -105,6 +107,8 @@ nodeTypeRegistry.register({
   inputCount: 2,
   outputCount: 1,
   category: 'inference',
+  icon: '🔹',
+  notation: 'P→Q, P ⊢ Q',
 });
 
 nodeTypeRegistry.register({
@@ -114,6 +118,8 @@ nodeTypeRegistry.register({
   inputCount: 2,
   outputCount: 1,
   category: 'inference',
+  icon: '🔹',
+  notation: 'P→Q, ¬Q ⊢ ¬P',
 });
 
 nodeTypeRegistry.register({
@@ -123,6 +129,8 @@ nodeTypeRegistry.register({
   inputCount: 1,
   outputCount: 1,
   category: 'foundational',
+  icon: '⊢',
+  notation: 'P ⊢ P',
 });
 
 nodeTypeRegistry.register({
@@ -132,6 +140,8 @@ nodeTypeRegistry.register({
   inputCount: 2,
   outputCount: 1,
   category: 'inference',
+  icon: '🔹',
+  notation: 'A→B, B→C ⊢ A→C',
 });
 
 nodeTypeRegistry.register({
@@ -141,6 +151,8 @@ nodeTypeRegistry.register({
   inputCount: 2,
   outputCount: 1,
   category: 'inference',
+  icon: '🔹',
+  notation: 'P∨Q, ¬P ⊢ Q',
 });
 
 nodeTypeRegistry.register({
@@ -150,6 +162,8 @@ nodeTypeRegistry.register({
   inputCount: 1,
   outputCount: 1,
   category: 'advanced',
+  icon: '🔺',
+  notation: 'P→⊥ ⊢ ¬P',
 });
 
 nodeTypeRegistry.register({
@@ -159,6 +173,8 @@ nodeTypeRegistry.register({
   inputCount: 2,
   outputCount: 1,
   category: 'advanced',
+  icon: '♾️',
+  notation: 'P(0), P(n)→P(n+1) ⊢ ∀n P(n)',
 });
 
 nodeTypeRegistry.register({
@@ -168,4 +184,6 @@ nodeTypeRegistry.register({
   inputCount: -1, // Dynamic
   outputCount: -1, // Dynamic
   category: 'special',
+  icon: '📝',
+  notation: 'Custom Logic',
 });

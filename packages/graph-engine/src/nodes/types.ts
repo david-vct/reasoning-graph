@@ -37,6 +37,8 @@ export interface NodeTypeDefinition {
   inputCount: number; // Number of premises (inputs)
   outputCount: number; // Number of conclusions (outputs)
   category: NodeCategory;
+  icon?: string; // Optional emoji/icon for UI display
+  notation?: string; // Optional formal notation (e.g., "P→Q, P ⊢ Q")
 }
 
 /**

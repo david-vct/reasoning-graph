@@ -350,11 +350,8 @@ describe('FreeFormNode', () => {
 });
 
 describe('SimpleAffirmationNode', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const SimpleAffirmationNode =
-    require('@/components/nodes/SimpleAffirmationNode').SimpleAffirmationNode;
-
-  it('renders with notation "⊢"', () => {
+  it('renders with notation "⊢"', async () => {
+    const { SimpleAffirmationNode } = await import('@/components/nodes/SimpleAffirmationNode');
     const mockData = {
       premise: { id: 'p1', content: 'Justification' },
       conclusion: { id: 'c1', content: 'Statement' },
@@ -371,11 +368,8 @@ describe('SimpleAffirmationNode', () => {
 });
 
 describe('ReductioAdAbsurdumNode', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const ReductioAdAbsurdumNode =
-    require('@/components/nodes/ReductioAdAbsurdumNode').ReductioAdAbsurdumNode;
-
-  it('renders with notation "P→⊥ ⊢ ¬P"', () => {
+  it('renders with notation "P→⊥ ⊢ ¬P"', async () => {
+    const { ReductioAdAbsurdumNode } = await import('@/components/nodes/ReductioAdAbsurdumNode');
     const mockData = {
       premise: { id: 'p1', content: '' },
       conclusion: { id: 'c1', content: '' },

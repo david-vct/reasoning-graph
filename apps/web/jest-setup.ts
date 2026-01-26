@@ -2,6 +2,11 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 
+// Mock uuid
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'mock-uuid-' + Math.random().toString(36).substring(7)),
+}));
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter() {

@@ -12,12 +12,9 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { useSession } from 'next-auth/react';
 import { useGraphStore } from '@/lib/store/graphStore';
-import SimpleNode from './SimpleNode';
-import ContextMenu from './ContextMenu';
-
-const nodeTypes = {
-  simpleNode: SimpleNode,
-};
+import { NodeType } from '@reasoning-graph/graph-engine';
+import nodeTypes from '@/lib/nodeTypes';
+import NodeTypeMenu from '@/components/canvas/NodeTypeMenu';
 
 function GraphCanvasInner() {
   const [showMiniMap] = useState(true);
@@ -29,7 +26,7 @@ function GraphCanvasInner() {
   const edges = useGraphStore((state) => state.edges);
   const onNodesChange = useGraphStore((state) => state.onNodesChange);
   const onEdgesChange = useGraphStore((state) => state.onEdgesChange);
-  const addNode = useGraphStore((state) => state.addNode);
+  const addTypedNode = useGraphStore((state) => state.addTypedNode);
   const deleteSelectedNode = useGraphStore((state) => state.deleteSelectedNode);
   const selectedNodeId = useGraphStore((state) => state.selectedNodeId);
 
@@ -44,12 +41,15 @@ function GraphCanvasInner() {
     setMenu({ x: event.clientX, y: event.clientY });
   }, []);
 
-  const onCreateNode = useCallback(() => {
-    if (menu) {
-      const position = screenToFlowPosition({ x: menu.x, y: menu.y });
-      addNode(position);
-    }
-  }, [menu, screenToFlowPosition, addNode]);
+  const onSelectNodeType = useCallback(
+    (type: NodeType) => {
+      if (menu) {
+        const position = screenToFlowPosition({ x: menu.x, y: menu.y });
+        addTypedNode(type, position);
+      }
+    },
+    [menu, screenToFlowPosition, addTypedNode]
+  );
 
   const onCloseMenu = useCallback(() => {
     setMenu(null);
@@ -91,7 +91,7 @@ function GraphCanvasInner() {
         {showMiniMap && <MiniMap position="bottom-left" nodeColor="#2563EB" />}
       </ReactFlow>
       {menu && (
-        <ContextMenu x={menu.x} y={menu.y} onClose={onCloseMenu} onCreateNode={onCreateNode} />
+        <NodeTypeMenu x={menu.x} y={menu.y} onSelectType={onSelectNodeType} onClose={onCloseMenu} />
       )}
     </div>
   );

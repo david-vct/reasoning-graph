@@ -8,6 +8,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '^uuid$': require.resolve('uuid'),
   },
   transform: {
     '^.+\\.tsx?$': [
@@ -19,6 +20,7 @@ module.exports = {
       },
     ],
   },
+  transformIgnorePatterns: ['node_modules/(?!(uuid)/)'],
   testMatch: ['<rootDir>/__tests__/**/*.test.{ts,tsx}', '!<rootDir>/__tests__/e2e/**'],
   collectCoverageFrom: [
     'app/**/*.{ts,tsx}',
