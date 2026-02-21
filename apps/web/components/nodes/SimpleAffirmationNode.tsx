@@ -48,32 +48,43 @@ export const SimpleAffirmationNode: React.FC<NodeProps<SimpleAffirmationNodeData
 
   const premises = data.premise
     ? [
-        <PropositionDisplay
-          key={data.premise.id}
-          id={data.premise.id}
-          content={data.premise.content}
-          placeholder="Justification"
-          isEmpty={!data.premise.content}
-          type="premise"
-          onSave={(newContent) => updateProposition(id, data.premise!.id, newContent)}
-        />,
+        {
+          handleId: `premise-${data.premise.id}`,
+          content: (
+            <PropositionDisplay
+              key={data.premise.id}
+              id={data.premise.id}
+              content={data.premise.content}
+              placeholder="Justification"
+              isEmpty={!data.premise.content}
+              type="premise"
+              onSave={(newContent) => updateProposition(id, data.premise!.id, newContent)}
+            />
+          ),
+        },
       ]
     : [];
 
   const conclusions = [
-    <PropositionDisplay
-      key={data.conclusion.id}
-      id={data.conclusion.id}
-      content={data.conclusion.content}
-      placeholder="⊢"
-      isEmpty={!data.conclusion.content}
-      type="conclusion"
-      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
-    />,
+    {
+      handleId: `conclusion-${data.conclusion.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.conclusion.id}
+          id={data.conclusion.id}
+          content={data.conclusion.content}
+          placeholder="⊢"
+          isEmpty={!data.conclusion.content}
+          type="conclusion"
+          onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
+        />
+      ),
+    },
   ];
 
   return (
     <LogicNodeWrapper
+      nodeId={id}
       label={data.label || 'Simple Affirmation'}
       notation="⊢"
       icon={<MessageSquare size={16} />}

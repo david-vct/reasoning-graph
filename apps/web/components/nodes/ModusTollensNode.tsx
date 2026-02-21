@@ -47,40 +47,56 @@ export const ModusTollensNode: React.FC<NodeProps<ModusTollensNodeData>> = ({
   };
 
   const premises = [
-    <PropositionDisplay
-      key={data.premises.implication.id}
-      id={data.premises.implication.id}
-      content={data.premises.implication.content}
-      placeholder="P→Q"
-      isEmpty={!data.premises.implication.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premises.implication.id, newContent)}
-    />,
-    <PropositionDisplay
-      key={data.premises.negation.id}
-      id={data.premises.negation.id}
-      content={data.premises.negation.content}
-      placeholder="¬Q"
-      isEmpty={!data.premises.negation.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premises.negation.id, newContent)}
-    />,
+    {
+      handleId: `premise-${data.premises.implication.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premises.implication.id}
+          id={data.premises.implication.id}
+          content={data.premises.implication.content}
+          placeholder="P→Q"
+          isEmpty={!data.premises.implication.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premises.implication.id, newContent)}
+        />
+      ),
+    },
+    {
+      handleId: `premise-${data.premises.negation.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premises.negation.id}
+          id={data.premises.negation.id}
+          content={data.premises.negation.content}
+          placeholder="¬Q"
+          isEmpty={!data.premises.negation.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premises.negation.id, newContent)}
+        />
+      ),
+    },
   ];
 
   const conclusions = [
-    <PropositionDisplay
-      key={data.conclusion.id}
-      id={data.conclusion.id}
-      content={data.conclusion.content}
-      placeholder="¬P"
-      isEmpty={!data.conclusion.content}
-      type="conclusion"
-      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
-    />,
+    {
+      handleId: `conclusion-${data.conclusion.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.conclusion.id}
+          id={data.conclusion.id}
+          content={data.conclusion.content}
+          placeholder="¬P"
+          isEmpty={!data.conclusion.content}
+          type="conclusion"
+          onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
+        />
+      ),
+    },
   ];
 
   return (
     <LogicNodeWrapper
+      nodeId={id}
       label={data.label || 'Modus Tollens'}
       notation="P→Q, ¬Q ⊢ ¬P"
       icon={<ArrowLeftRight size={16} />}

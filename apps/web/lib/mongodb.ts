@@ -12,18 +12,18 @@ interface ConnectionCache {
   promise: Promise<typeof mongoose> | null;
 }
 
-// Cache connection in global to prevent multiple connections in serverless
+// Cache connection in globalThis to prevent multiple connections in serverless
 declare global {
   var mongooseCache: ConnectionCache | undefined;
 }
 
-const cached: ConnectionCache = global.mongooseCache || {
+const cached: ConnectionCache = globalThis.mongooseCache || {
   conn: null,
   promise: null,
 };
 
-if (!global.mongooseCache) {
-  global.mongooseCache = cached;
+if (!globalThis.mongooseCache) {
+  globalThis.mongooseCache = cached;
 }
 
 /**

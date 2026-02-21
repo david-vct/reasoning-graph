@@ -39,19 +39,25 @@ export const AxiomNode: React.FC<NodeProps<AxiomNodeData>> = ({ id, data, select
   };
 
   const conclusions = [
-    <PropositionDisplay
-      key={data.conclusion.id}
-      id={data.conclusion.id}
-      content={data.conclusion.content}
-      placeholder="Axiom"
-      isEmpty={!data.conclusion.content}
-      type="conclusion"
-      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
-    />,
+    {
+      handleId: `conclusion-${data.conclusion.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.conclusion.id}
+          id={data.conclusion.id}
+          content={data.conclusion.content}
+          placeholder="Axiom"
+          isEmpty={!data.conclusion.content}
+          type="conclusion"
+          onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
+        />
+      ),
+    },
   ];
 
   return (
     <LogicNodeWrapper
+      nodeId={id}
       label={data.label || 'Axiom'}
       notation="Axiom"
       icon={<CircleDot size={16} />}

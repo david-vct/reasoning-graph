@@ -47,31 +47,42 @@ export const ReductioAdAbsurdumNode: React.FC<NodeProps<ReductioAdAbsurdumNodeDa
   };
 
   const premises = [
-    <PropositionDisplay
-      key={data.premise.id}
-      id={data.premise.id}
-      content={data.premise.content}
-      placeholder="P→⊥"
-      isEmpty={!data.premise.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premise.id, newContent)}
-    />,
+    {
+      handleId: `premise-${data.premise.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premise.id}
+          id={data.premise.id}
+          content={data.premise.content}
+          placeholder="P→⊥"
+          isEmpty={!data.premise.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premise.id, newContent)}
+        />
+      ),
+    },
   ];
 
   const conclusions = [
-    <PropositionDisplay
-      key={data.conclusion.id}
-      id={data.conclusion.id}
-      content={data.conclusion.content}
-      placeholder="¬P"
-      isEmpty={!data.conclusion.content}
-      type="conclusion"
-      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
-    />,
+    {
+      handleId: `conclusion-${data.conclusion.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.conclusion.id}
+          id={data.conclusion.id}
+          content={data.conclusion.content}
+          placeholder="¬P"
+          isEmpty={!data.conclusion.content}
+          type="conclusion"
+          onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
+        />
+      ),
+    },
   ];
 
   return (
     <LogicNodeWrapper
+      nodeId={id}
       label={data.label || 'Reductio ad Absurdum'}
       notation="P→⊥ ⊢ ¬P"
       icon={<AlertTriangle size={16} />}

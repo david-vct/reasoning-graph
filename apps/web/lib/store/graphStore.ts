@@ -1,15 +1,33 @@
 import { create } from 'zustand';
-import { Node, Edge, NodeChange, EdgeChange, applyNodeChanges, applyEdgeChanges } from 'reactflow';
+import {
+  Node,
+  Edge,
+  NodeChange,
+  EdgeChange,
+  Connection,
+  applyNodeChanges,
+  applyEdgeChanges,
+} from 'reactflow';
 import { v4 as uuidv4 } from 'uuid';
 import { NodeType } from '@reasoning-graph/graph-engine';
 import { toast } from 'sonner';
+
+export type ConnectionMode = 'drag-drop' | 'click-click';
 
 interface GraphStore {
   nodes: Node[];
   edges: Edge[];
   selectedNodeId: string | null;
+  connectionMode: ConnectionMode;
+  isConnecting: boolean;
+  sourceNodeId: string | null;
+  sourceHandleId: string | null;
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
+  setConnectionMode: (mode: ConnectionMode) => void;
+  startConnection: (params: { nodeId: string; handleId: string }) => void;
+  cancelConnection: () => void;
+  completeConnection: (connection: Connection) => boolean;
   addNode: (position: { x: number; y: number }) => void;
   addTypedNode: (type: NodeType, position: { x: number; y: number }) => void;
   updateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
@@ -26,6 +44,10 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
   nodes: [],
   edges: [],
   selectedNodeId: null,
+  connectionMode: 'drag-drop',
+  isConnecting: false,
+  sourceNodeId: null,
+  sourceHandleId: null,
 
   onNodesChange: (changes) => {
     set({
@@ -37,6 +59,69 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
     set({
       edges: applyEdgeChanges(changes, get().edges),
     });
+  },
+
+  setConnectionMode: (mode) => {
+    set({ connectionMode: mode });
+  },
+
+  startConnection: ({ nodeId, handleId }) => {
+    set({
+      isConnecting: true,
+      sourceNodeId: nodeId,
+      sourceHandleId: handleId,
+    });
+  },
+
+  cancelConnection: () => {
+    set({
+      isConnecting: false,
+      sourceNodeId: null,
+      sourceHandleId: null,
+    });
+  },
+
+  completeConnection: (connection) => {
+    const { source, target, sourceHandle, targetHandle } = connection;
+    const { edges } = get();
+
+    if (!source || !target || !sourceHandle || !targetHandle) {
+      return false;
+    }
+
+    const duplicateEdge = edges.some(
+      (edge) =>
+        edge.source === source &&
+        edge.target === target &&
+        edge.sourceHandle === sourceHandle &&
+        edge.targetHandle === targetHandle
+    );
+
+    if (duplicateEdge) {
+      get().cancelConnection();
+      return false;
+    }
+
+    const newEdge: Edge = {
+      id: uuidv4(),
+      source,
+      target,
+      sourceHandle,
+      targetHandle,
+      animated: true,
+      style: {
+        strokeWidth: 2,
+      },
+    };
+
+    set({
+      edges: [...edges, newEdge],
+      isConnecting: false,
+      sourceNodeId: null,
+      sourceHandleId: null,
+    });
+
+    return true;
   },
 
   addNode: (position) => {

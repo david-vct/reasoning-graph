@@ -47,40 +47,56 @@ export const DisjunctionNode: React.FC<NodeProps<DisjunctionNodeData>> = ({
   };
 
   const premises = [
-    <PropositionDisplay
-      key={data.premises.disjunction.id}
-      id={data.premises.disjunction.id}
-      content={data.premises.disjunction.content}
-      placeholder="P∨Q"
-      isEmpty={!data.premises.disjunction.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premises.disjunction.id, newContent)}
-    />,
-    <PropositionDisplay
-      key={data.premises.negation.id}
-      id={data.premises.negation.id}
-      content={data.premises.negation.content}
-      placeholder="¬P"
-      isEmpty={!data.premises.negation.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premises.negation.id, newContent)}
-    />,
+    {
+      handleId: `premise-${data.premises.disjunction.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premises.disjunction.id}
+          id={data.premises.disjunction.id}
+          content={data.premises.disjunction.content}
+          placeholder="P∨Q"
+          isEmpty={!data.premises.disjunction.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premises.disjunction.id, newContent)}
+        />
+      ),
+    },
+    {
+      handleId: `premise-${data.premises.negation.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premises.negation.id}
+          id={data.premises.negation.id}
+          content={data.premises.negation.content}
+          placeholder="¬P"
+          isEmpty={!data.premises.negation.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premises.negation.id, newContent)}
+        />
+      ),
+    },
   ];
 
   const conclusions = [
-    <PropositionDisplay
-      key={data.conclusion.id}
-      id={data.conclusion.id}
-      content={data.conclusion.content}
-      placeholder="Q"
-      isEmpty={!data.conclusion.content}
-      type="conclusion"
-      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
-    />,
+    {
+      handleId: `conclusion-${data.conclusion.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.conclusion.id}
+          id={data.conclusion.id}
+          content={data.conclusion.content}
+          placeholder="Q"
+          isEmpty={!data.conclusion.content}
+          type="conclusion"
+          onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
+        />
+      ),
+    },
   ];
 
   return (
     <LogicNodeWrapper
+      nodeId={id}
       label={data.label || 'Disjunction'}
       notation="P∨Q, ¬P ⊢ Q"
       icon={<GitBranch size={16} />}

@@ -8,7 +8,7 @@ declare module 'next-auth' {
       name: string;
       preferences?: {
         theme?: 'light' | 'dark';
-        connectionMode?: string;
+        connectionMode?: 'drag-drop' | 'click-click';
       };
     };
   }
@@ -19,7 +19,7 @@ declare module 'next-auth' {
     name: string;
     preferences?: {
       theme?: 'light' | 'dark';
-      connectionMode?: string;
+      connectionMode?: 'drag-drop' | 'click-click';
     };
   }
 }
@@ -29,5 +29,9 @@ declare module 'next-auth/jwt' {
     id: string;
     email: string;
     name: string;
+    preferences?: {
+      theme?: 'light' | 'dark';
+      connectionMode?: 'drag-drop' | 'click-click';
+    };
   }
 }

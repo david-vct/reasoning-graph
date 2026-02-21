@@ -58,4 +58,31 @@ export class UserRepository {
     const { passwordHash: _, ...userWithoutPassword } = user;
     return userWithoutPassword as User;
   }
+
+  /**
+   * Update connection mode preference for a user
+   */
+  static async updateConnectionMode(
+    userId: string,
+    connectionMode: 'drag-drop' | 'click-click'
+  ): Promise<User | null> {
+    await connectDB();
+
+    const result = await UserModel.findByIdAndUpdate(
+      userId,
+      { $set: { 'preferences.connectionMode': connectionMode } },
+      { new: true }
+    ).lean();
+
+    if (!result) return null;
+
+    return {
+      id: result._id.toString(),
+      email: result.email,
+      name: result.name,
+      createdAt: result.createdAt,
+      graphQuota: result.graphQuota,
+      preferences: result.preferences,
+    } as User;
+  }
 }

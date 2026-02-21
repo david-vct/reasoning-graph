@@ -43,6 +43,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.email = user.email as string;
         token.name = user.name as string;
+        token.preferences = user.preferences;
       }
       return token;
     },
@@ -51,6 +52,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
+        session.user.preferences = token.preferences as {
+          theme?: 'light' | 'dark';
+          connectionMode?: 'drag-drop' | 'click-click';
+        };
       }
       return session;
     },

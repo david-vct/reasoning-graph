@@ -43,40 +43,56 @@ export const InductionNode: React.FC<NodeProps<InductionNodeData>> = ({ id, data
   };
 
   const premises = [
-    <PropositionDisplay
-      key={data.premises.baseCase.id}
-      id={data.premises.baseCase.id}
-      content={data.premises.baseCase.content}
-      placeholder="Base Case: P(0)"
-      isEmpty={!data.premises.baseCase.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premises.baseCase.id, newContent)}
-    />,
-    <PropositionDisplay
-      key={data.premises.inductiveStep.id}
-      id={data.premises.inductiveStep.id}
-      content={data.premises.inductiveStep.content}
-      placeholder="Inductive: P(n)→P(n+1)"
-      isEmpty={!data.premises.inductiveStep.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premises.inductiveStep.id, newContent)}
-    />,
+    {
+      handleId: `premise-${data.premises.baseCase.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premises.baseCase.id}
+          id={data.premises.baseCase.id}
+          content={data.premises.baseCase.content}
+          placeholder="Base Case: P(0)"
+          isEmpty={!data.premises.baseCase.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premises.baseCase.id, newContent)}
+        />
+      ),
+    },
+    {
+      handleId: `premise-${data.premises.inductiveStep.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premises.inductiveStep.id}
+          id={data.premises.inductiveStep.id}
+          content={data.premises.inductiveStep.content}
+          placeholder="Inductive: P(n)→P(n+1)"
+          isEmpty={!data.premises.inductiveStep.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premises.inductiveStep.id, newContent)}
+        />
+      ),
+    },
   ];
 
   const conclusions = [
-    <PropositionDisplay
-      key={data.conclusion.id}
-      id={data.conclusion.id}
-      content={data.conclusion.content}
-      placeholder="∀n: P(n)"
-      isEmpty={!data.conclusion.content}
-      type="conclusion"
-      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
-    />,
+    {
+      handleId: `conclusion-${data.conclusion.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.conclusion.id}
+          id={data.conclusion.id}
+          content={data.conclusion.content}
+          placeholder="∀n: P(n)"
+          isEmpty={!data.conclusion.content}
+          type="conclusion"
+          onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
+        />
+      ),
+    },
   ];
 
   return (
     <LogicNodeWrapper
+      nodeId={id}
       label={data.label || 'Induction'}
       notation="Induction"
       icon={<Repeat size={16} />}

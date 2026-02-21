@@ -43,40 +43,56 @@ export const SyllogismNode: React.FC<NodeProps<SyllogismNodeData>> = ({ id, data
   };
 
   const premises = [
-    <PropositionDisplay
-      key={data.premises.major.id}
-      id={data.premises.major.id}
-      content={data.premises.major.content}
-      placeholder="Major Premise"
-      isEmpty={!data.premises.major.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premises.major.id, newContent)}
-    />,
-    <PropositionDisplay
-      key={data.premises.minor.id}
-      id={data.premises.minor.id}
-      content={data.premises.minor.content}
-      placeholder="Minor Premise"
-      isEmpty={!data.premises.minor.content}
-      type="premise"
-      onSave={(newContent) => updateProposition(id, data.premises.minor.id, newContent)}
-    />,
+    {
+      handleId: `premise-${data.premises.major.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premises.major.id}
+          id={data.premises.major.id}
+          content={data.premises.major.content}
+          placeholder="Major Premise"
+          isEmpty={!data.premises.major.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premises.major.id, newContent)}
+        />
+      ),
+    },
+    {
+      handleId: `premise-${data.premises.minor.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.premises.minor.id}
+          id={data.premises.minor.id}
+          content={data.premises.minor.content}
+          placeholder="Minor Premise"
+          isEmpty={!data.premises.minor.content}
+          type="premise"
+          onSave={(newContent) => updateProposition(id, data.premises.minor.id, newContent)}
+        />
+      ),
+    },
   ];
 
   const conclusions = [
-    <PropositionDisplay
-      key={data.conclusion.id}
-      id={data.conclusion.id}
-      content={data.conclusion.content}
-      placeholder="Conclusion"
-      isEmpty={!data.conclusion.content}
-      type="conclusion"
-      onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
-    />,
+    {
+      handleId: `conclusion-${data.conclusion.id}`,
+      content: (
+        <PropositionDisplay
+          key={data.conclusion.id}
+          id={data.conclusion.id}
+          content={data.conclusion.content}
+          placeholder="Conclusion"
+          isEmpty={!data.conclusion.content}
+          type="conclusion"
+          onSave={(newContent) => updateProposition(id, data.conclusion.id, newContent)}
+        />
+      ),
+    },
   ];
 
   return (
     <LogicNodeWrapper
+      nodeId={id}
       label={data.label || 'Syllogism'}
       notation="Syllogism"
       icon={<GitMerge size={16} />}
